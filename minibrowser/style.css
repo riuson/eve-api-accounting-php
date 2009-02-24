@@ -1,0 +1,29 @@
+#menu {
+	width: 100%;
+	/*padding-left: 10px;*/
+}
+#menu li {
+	display: inline;
+	list-style-type: none;
+	text-align: center;
+	padding: 5pt;
+}
+
+#menu li a:hover, #menu li a.active {
+	font-weight: bold;
+	text-decoration: none;
+}
+.b-table-caption
+{
+	border-style: solid;
+	border-color: silver;
+	border-width: thin;
+	background-color: #8990AA;
+}
+.b-row-even
+{
+	background-color: #C1C8E0;
+}
+.b-row-odd
+{
+}

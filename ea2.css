@@ -1,0 +1,53 @@
+.b-nick
+{
+	font-style: italic;
+	font-weight: bold;
+	color: navy;
+}
+.b-pager
+{
+	color: #BA9862;
+}
+.b-login
+{
+	margin: 0 auto;
+}
+.b-login-message
+{
+	color: red;
+	text-align: center;
+	font-size: small;
+}
+.b-border
+{
+	border-width: 1px;
+	border-style: solid;
+	border-color: silver;
+}
+.b-menu-allowed
+{
+	color: green;
+}
+.b-widthfull
+{
+	width: 100%;
+}
+tr
+{
+	white-space: normal;
+}
+.b-right
+{
+	text-align: right;
+}
+.b-center
+{
+	text-align: center;
+}
+.b-top
+{
+	vertical-align: top;
+}
+a img {
+ border: none; /* Убираем рамку вокруг изображений-ссылок */
+}

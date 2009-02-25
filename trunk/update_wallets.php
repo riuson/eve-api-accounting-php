@@ -51,7 +51,7 @@
 		}
 		$qr->close();
 		$db->close();
-		echo $msg;
+		//echo $msg;
 		
 	?>
 </body>

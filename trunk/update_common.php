@@ -46,7 +46,7 @@
 		$db->query("insert into api_updater_log set _date_ = now(), message = '" . mysql_escape_string($str) . "';");
 		
 		$db->close();
-		echo $msg;
+		//echo $msg;
 		
 	?>
 </body>

@@ -95,20 +95,7 @@
 			//Sat, 27 Dec 2008 18:57:11
 			$result["now"] = date("D j M Y G:i:s", time());
 
-			//if($_SERVER["SERVER_NAME"] == "localhost")
-			//{
-			//	$this->apiroot = "http://localhost/ea/apisamples";
-				//echo (" local version ");
-			//}
-			//else
-			//{
-				$this->apiroot = "http://api.eve-online.com";
-				//$apiroot = "http://bloc.net.ru/ea/apisamples";
-				//echo (" web version ");
-			//}
-			//для тестирования одного файла
-			//if(stripos($target, "asset"))
-			//	$this->apiroot = "http://bloc.net.ru/ea";
+			$this->apiroot = "http://api.eve-online.com";
 
 			$serverResponse = null;
 			$db = OpenDB2();

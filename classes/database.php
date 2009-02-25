@@ -1,4 +1,10 @@
 <?php
+	$db_host = "localhost";
+    //echo($db_host);
+    $db_user = "sleephost_ea";
+    $db_pass = "TdfNhbybnb";
+    $db_name = "sleephost_ea";
+    $dcapicode = "4r8731tsnb";
     //$db_link = mysql_connect($host, $user, $password);
     //mysql_close($dblink);
     function GetUniqueId()

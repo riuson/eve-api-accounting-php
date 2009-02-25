@@ -11,7 +11,7 @@
 <body class='b-page'>
 	<?php
 		include_once "classes/api2.php";
-		include_once "classes/constants.php";
+		include_once "classes/.config.php";
 		include_once "classes/api_accountbalance.php";
 		include_once "classes/page.php";
 		//include_once "classes/user.php";

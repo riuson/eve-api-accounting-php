@@ -125,8 +125,8 @@
 
 
 			$refTypes = array();
-			$dblink = OpenDB2();
-			$qr = $dblink->query("select * from api_reftypes order by refTypeName;");
+			$db = OpenDB2();
+			$qr = $db->query("select * from api_reftypes order by refTypeName;");
 			while($row = $qr->fetch_assoc())
 			{
 				$refTypes[$row["refTypeId"]] = $row["refTypeName"];
@@ -147,7 +147,7 @@
 				$where .= " and accountKey in ($selDivs)";
 
 			//подсчёт числа подходящих строк
-			$qr = $dblink->query("select count(*) as _count_ from api_wallet_transactions $where;");
+			$qr = $db->query("select count(*) as _count_ from api_wallet_transactions $where;");
 			$row = $qr->fetch_assoc();
 			$recordsCount = $row["_count_"];
 			$qr->close();
@@ -211,7 +211,7 @@
 			$query = 
 "select *, price*quantity as amount from api_wallet_transactions\n
 $where $sorter limit $pages->start, $pages->count;";
-			$qr = $dblink->query($query);
+			$qr = $db->query($query);
 
 
     		$rowIndex = $pages->start;
@@ -223,10 +223,8 @@ $where $sorter limit $pages->start, $pages->count;";
 					$rowClass = "b-row-odd";
 
 				$walletName = $divisions[$row["accountKey"]];
-				$price = number_format($row["price"], 2, ",", " ");
-				$amount = number_format($row["amount"], 2, ",", " ");
-				$price = str_replace(" ", "&nbsp;", $price);
-				$amount = str_replace(" ", "&nbsp;", $amount);
+				$price  = $page->FormatNum($row["price"], 2);
+				$amount = $page->FormatNum($row["amount"], 2);
 				$page->Body .= "
 	<tr class='$rowClass'>
 		<td>$rowIndex</td>
@@ -250,7 +248,7 @@ $where $sorter limit $pages->start, $pages->count;";
 ";
 			$page->Body .= $pages->Write($recordsCount);
 			$qr->close();
-			$dblink->close();
+			$db->close();
 
 		}
 	}

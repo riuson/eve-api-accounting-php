@@ -19,10 +19,10 @@
 
 			$request_processor = $_SERVER["PHP_SELF"] . "?mode=" . get_class($this);
 
-			$dblink = OpenDB2();
+			$db = OpenDB2();
 
 			//подсчёт числа подходящих строк
-			$qr = $dblink->query("select count(*) as _count_ from api_member_tracking where accountId = '$accountId';");
+			$qr = $db->query("select count(*) as _count_ from api_member_tracking where accountId = '$accountId';");
 			$row = $qr->fetch_assoc();
 			$recordsCount = $row["_count_"];
 			$qr->close();
@@ -54,7 +54,7 @@
 			//нет. оказалось надо отдельно, т.к. число записей нужно для определения покаызываемой страницы
 			$query = "select * from api_member_tracking where accountId = '$accountId' $sorter limit $pages->start, $pages->count;";
 			//echo $query;
-			$qr = $dblink->query($query);
+			$qr = $db->query($query);
 
     		$rowIndex = $pages->start;
 			while($row = $qr->fetch_assoc())
@@ -83,7 +83,7 @@
 ";
 			$page->Body .= $pages->Write($recordsCount);
 			$qr->close();
-			$dblink->close();
+			$db->close();
 
 		}
 	}

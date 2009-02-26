@@ -17,15 +17,15 @@
 			if(isset($_REQUEST["allianceId"]))
 			{
 				$allianceId = $_REQUEST["allianceId"];
-				if(preg_match("/^\d+$/", $allianceId) == 0)
+				if(preg_match("/^[\d]{1,10}$/", $allianceId) != 1)
 					$allianceId = null;
 			}
 
 			if($allianceId == null)
 			{
 				//вывод элемента постраничного просмотра
-				$dblink = OpenDB2();
-				$qr = $dblink->query("select count(*) as _count_ from api_alliances;");
+				$db = OpenDB2();
+				$qr = $db->query("select count(*) as _count_ from api_alliances;");
 				$row = $qr->fetch_assoc();
 				$recordsCount = $row["_count_"];
 				$qr->close();
@@ -54,7 +54,7 @@
 						</tr>\n";
 
 				$sorter = $page->GetSorter("name");
-				$qr = $dblink->query("select * from api_alliances $sorter limit $pages->start, $pages->count;");
+				$qr = $db->query("select * from api_alliances $sorter limit $pages->start, $pages->count;");
 
 				$rowIndex = $pages->start;
 				$rowClass = "even";
@@ -81,15 +81,15 @@
 				";
 
 				$qr->close();
-				$dblink->close();
+				$db->close();
 			}
 			else
 			{
 				include_once "api_corporationsheet.php";
 				$corpSheet = new Api_CorporationSheet($page);
 				//вывод элемента постраничного просмотра
-				$dblink = OpenDB2();
-				$qr = $dblink->query("select count(*) as _count_ from api_corporations where allianceId = $allianceId;");
+				$db = OpenDB2();
+				$qr = $db->query("select count(*) as _count_ from api_corporations where allianceId = $allianceId;");
 				$row = $qr->fetch_assoc();
 				$recordsCount = $row["_count_"];
 				$qr->close();
@@ -105,7 +105,7 @@
 				$page->Body = $pages->Write($recordsCount);
 
 				//print_r($qr);
-				$qr = $dblink->query("select * from api_corporations where allianceId = $allianceId limit $pages->start, $pages->count;");
+				$qr = $db->query("select * from api_corporations where allianceId = $allianceId limit $pages->start, $pages->count;");
 
 				$rowIndex = $pages->start;
 				$rowClass = "even";
@@ -127,7 +127,7 @@
 				}
 
 				$qr->close();
-				$dblink->close();
+				$db->close();
 			}
 		}
 	}

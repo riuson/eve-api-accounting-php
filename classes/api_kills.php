@@ -49,7 +49,11 @@
 			$request_processor = $_SERVER["PHP_SELF"] . "?mode=" . get_class($this);
 
 			if(isset($_REQUEST["killId"]))
+			{
 				$showKillId = $_REQUEST["killId"];
+				if(preg_match("/^[\d]{1,10}$/", $showKillId) != 1)
+					$showKillId = null;
+			}
 			else
 				$showKillId = null;
 
@@ -136,7 +140,7 @@ where api_kills.accountId = '$accountId' $sorter limit $pages->start, $pages->co
 				$qr->close();
 			}
 
-			if($showKillId != null && preg_match("/^\d+$/", $showKillId) == 1)
+			if($showKillId != null)
 			{
 				$query = "select api_kills.*, mapSolarSystems.solarSystemName, mapSolarSystems.security from api_kills ".
 					"left join mapSolarSystems on api_kills.solarSystemId = mapSolarSystems.solarSystemID ".

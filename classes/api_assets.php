@@ -26,11 +26,12 @@
 
 			//локация, если параметр передан, но не является числом, считаем что он не передан
 			if(isset($_REQUEST["locationId"]))
+			{
 				$locationId = $_REQUEST["locationId"];
+				if(preg_match("/^[\d]{1,10}$/", $locationId) != 1)
+					$locationId = null;
+			}
 			else
-				$locationId = null;
-
-			if($locationId != null && preg_match("/^\d+$/", $locationId) == 0)
 				$locationId = null;
 
 			//просмотр списка слежения
@@ -43,72 +44,6 @@
 			//вывод элемента постраничного просмотра
 
 			$db = OpenDB2();
-
-
-			//добавляемая к наблюдению вещь
-			if(isset($_REQUEST["addmonitor"]))
-			{
-				$addmonitor = $_REQUEST["addmonitor"];
-				$qr = $db->query(sprintf(
-					"select * from api_assets where accountId = '%s' and recordId = '%s';",
-					$accountId,
-					mysql_escape_string($addmonitor)));
-				if($db->affected_rows == 1)
-				{
-					$row = $qr->fetch_assoc();
-					$locId = $row["locationId"];
-					$typeId = $row["typeId"];
-					$db->query(sprintf(
-						"insert ignore into api_assets_monitor set recordId = '%s', accountId = '%s', locationId = %d, typeId = %d, quantityMinimum = 0, quantityNormal = 1000;",
-						GetUniqueId(),
-						$accountId,
-						$locId,
-						$typeId));
-				}
-				$qr->close();
-			}
-
-			//удаляемая из наблюдения вещь
-			if(isset($_REQUEST["delmonitor"]))
-			{
-				$delmonitor = $_REQUEST["delmonitor"];
-				$qr = $db->query(sprintf(
-					"delete from api_assets_monitor where accountId = '%s' and recordId = '%s';",
-					$accountId,
-					mysql_escape_string($delmonitor)));
-			}
-
-			//редактируемая в наблюдении вещь
-			if(isset($_REQUEST["editmonitor"]))
-			{
-				$editmonitor = $_REQUEST["editmonitor"];
-				/*$qr = $db->query(sprintf(
-					"delete from api_assets_monitor where accountId = '%s' and recordId = '%s';",
-					$accountId,
-					mysql_escape_string($delmonitor)));*/
-			}
-			else
-			{
-				$editmonitor = null;
-			}
-
-			//если редактирование завершено
-			if(isset($_POST["edit_monitor_submit"]) && isset($_POST["quantityMinimum"]) && isset($_POST["quantityNormal"])  && isset($_POST["edited_monitor_id"]))
-			{
-				$quantityMinimum = $_POST["quantityMinimum"];
-				$quantityNormal = $_POST["quantityNormal"];
-				$edited_monitor_id = $_POST["edited_monitor_id"];
-				//если это числа
-				if(preg_match("/^\d+$/", $quantityMinimum) == 1 && preg_match("/^\d+$/", $quantityNormal) == 1)
-				{
-					$query = sprintf(
-						"update api_assets_monitor set quantityMinimum = %d, quantityNormal = %d where recordId = '%s';",
-						$quantityMinimum,
-						$quantityNormal,
-						mysql_escape_string($edited_monitor_id));
-					$db->query($query);
-				}
-			}
 
 			/*$qr = $dblink->query("select count(*) as _count_ from api_assets;");
 			$row = $qr->fetch_assoc();
@@ -131,7 +66,7 @@
 
 			// просмотр перечня локаций ********************************
 			//если никакой подрежим не выбран
-			if($locationId == null && $viewmonitor == null && $editmonitor == null)
+			if($locationId == null && $viewmonitor == null)
 			{
 				$this->ShowLocationsList($page, $accountId);
 			}
@@ -144,50 +79,6 @@
 			else if($viewmonitor != null)
 			{
 				$this->ShowMonitoringList($page, $accountId);
-			}
-			else if ($editmonitor != null)
-			{
-				//$addmonitor = $_REQUEST["addmonitor"];
-				$qr = $db->query(sprintf(
-"select a.*, case
-when a.locationid between 66000000 and 66015131 then (
-	select s.stationName from staStations as s
-	where s.stationID = a.locationid -6000001
-)
-when a.locationid between 66015132 and 67999999 then (
-	select c.stationname from api_outposts as c
-	where c.stationid = a.locationid -6000000
-)
-else (
-	select m.itemName from mapDenormalize as m
-	where m.itemID = a.locationid
-)
-end as locationName, invTypes.typeName
-from api_assets_monitor as a
-left join invTypes on invTypes.typeID = a.typeId
-where accountId = '%s' and recordId = '%s';",
-					$accountId,
-					mysql_escape_string($editmonitor)));
-				if($db->affected_rows == 1)
-				{
-					$row = $qr->fetch_assoc();
-					$locName = $row["locationName"];
-					$typeName = $row["typeName"];
-					$quantityMinimum = $row["quantityMinimum"];
-					$quantityNormal = $row["quantityNormal"];
-					$page->Body .=
-"<br><form action='{$this->request_processor}&viewmonitor' method='post'>
-	$locName<br>
-	$typeName<br>
-	<label for='quantityMinimum'>Минимум</label>
-	<input type='text' name='quantityMinimum' value='$quantityMinimum'> 
-	<label for='quantityNormal'>Норма</label>
-	<input type='text' name='quantityNormal' value='$quantityNormal'>
-	<button type='submit' name='edit_monitor_submit'>Применить</button>
-	<input type='hidden' name='edited_monitor_id' value='$editmonitor'>
-</form>";
-				}
-				$qr->close();
 			}
 			//$this->ProcessSubscribe($db, $accountId, $page);
 			$db->close();

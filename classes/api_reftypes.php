@@ -8,7 +8,7 @@
 			//$Api->UpdateRefTypes();
 
 			//вывод элемента постраничного просмотра
-			$dblink = OpenDB2();
+			$db = OpenDB2();
 
 			//print_r($qr);
 			$page->Body = "
@@ -23,7 +23,7 @@
 			$page->Body .= "
 					</tr>\n";
 			$sorter = $page->GetSorter("refTypeId");
-			$qr = $dblink->query("select * from api_reftypes $sorter ;");
+			$qr = $db->query("select * from api_reftypes $sorter ;");
 
 			$rowIndex = 0;
 			$rowClass = "even";
@@ -48,7 +48,7 @@
 			";
 
 			$qr->close();
-			$dblink->close();
+			$db->close();
 		}
 	}
 ?>

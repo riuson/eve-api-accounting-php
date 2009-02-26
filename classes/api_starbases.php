@@ -56,7 +56,7 @@
 				if(isset($_REQUEST["itemId"]))
 				{
 					$itemId = $_REQUEST["itemId"];
-					if(preg_match("/^\d+$/", $itemId) == 0)
+					if(preg_match("/^[\d]{1,10}$/", $itemId) == 0)
 						$itemId = null;
 				}
 				if($itemId == null)
@@ -161,7 +161,7 @@ WHERE api_starbases.accountId = '{$this->accountId}' $sorter;";
 $starbase->locationName [$calcRes[security]]<br>
 $starbase->moonName, $starbase->typeName, $starbase->stateName</p>
 <!--// Время последнего состояния топлива: $starbase->stateTimeStamp<br> //-->
-<p>Включен: $starbase->onlineTimeStamp<br>
+<p>Включён: $starbase->onlineTimeStamp<br>
 Заправлен: $starbase->refuellingTimestamp<br>
 Выключится: $strEndTime</p>
 

@@ -29,7 +29,8 @@
 			{
 				$msg .= "Проверка данных $rowUser[login] не прошла, проверка запасных ключей...<br>";
 				$msg .= "Проверка $accountId<br>";
-				$qr2 = $db->query("select * from api_users_reserve where accountId = '$accountId';");
+				$qr2 = $db->query(
+					sprintf("select * from api_users_reserve where accountId = '%s';", $db->real_escape_string($accountId)));
 				
 				while($rowUserReserve = $qr2->fetch_assoc())
 				{
@@ -41,15 +42,29 @@
 					if(CheckUserData($dcapicode, $userId, $apiKey, $characterId) == false)
 					{
 						$msg .= "Проверка запасных ключей для данных $rowUser[login]: $userId, $characterId не прошла<br>";
-						$db->query("update set valid = 0 where accountId = '$accountId' and userId = '$userId' and apiKey = '$apiKey' and characterId = '$characterId';");
+						$query = sprintf("update set valid = 0 where accountId = '%s' and userId = '%s' and apiKey = '%s' and characterId = '%s';",
+							$db->real_escape_string($accountId),
+							$db->real_escape_string($userId),
+							$db->real_escape_string($apiKey),
+							$db->real_escape_string($characterId));
+						$db->query($query);
 					}
 					else
 					{
 						$msg .= "Найден рабочий ключ для данных $rowUser[login]: $userId, $characterId<br>";
-						$query = "update api_users_reserve set valid = 1 where accountId = '$accountId' and userId = '$userId' and apiKey = '$apiKey' and characterId = '$characterId';";
+						$query = sprintf("update api_users_reserve set valid = 1 where accountId = '%s' and userId = '%s' and apiKey = '%s' and characterId = '%s';",
+							$db->real_escape_string($accountId),
+							$db->real_escape_string($userId),
+							$db->real_escape_string($apiKey),
+							$db->real_escape_string($characterId));
 						//$msg .= $query;
 						$db->query($query);
-						$query = "update api_users set userId = '$userId', apiKey = '$apiKey', characterId = '$characterId' where accountId = '$accountId';";
+
+						$query = sprintf("update api_users set userId = '%s', apiKey = '%s', characterId = '%s' where accountId = '%s';",
+							$db->real_escape_string($userId),
+							$db->real_escape_string($apiKey),
+							$db->real_escape_string($characterId),
+							$db->real_escape_string($accountId));
 						//$msg .= $query;
 						$db->query($query);
 						break;

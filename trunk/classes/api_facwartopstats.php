@@ -10,7 +10,7 @@
 			//$Api->UpdateFacWarTopStats();
 
 			////вывод элемента постраничного просмотра
-			$dblink = OpenDB2();
+			$db = OpenDB2();
 			//$qr = $dblink->query("select count(*) as _count_ from api_alliances;");
 			//$row = $qr->fetch_assoc();
 			//$recordsCount = $row["_count_"];
@@ -67,6 +67,11 @@
 				"VictoryPointsYesterday" => "счёт за сегодня",
 				"VictoryPointsLastWeek" => "счёт за неделю",
 				"VictoryPointsTotal" => "счёт общий");
+			//замена параметров на умолчание, если переданы ошибочные
+			if(!array_key_exists($who, $forWho))
+				$who = "characters";
+			if(!array_key_exists($stat, $stats))
+				$stat = "KillsYesterday";
 
 			$page->Body = "
 		<form action='$uri' method='post'>
@@ -116,7 +121,7 @@
 					</tr>\n";
 
 			$sorter = $page->GetSorter("value");
-			$qr = $dblink->query("select * from api_facwartopstats where forWho = '$who' and statName = '$stat' $sorter ;");
+			$qr = $db->query("select * from api_facwartopstats where forWho = '$who' and statName = '$stat' $sorter ;");
 
 			$rowIndex = 0;
 			$rowClass = "even";
@@ -147,7 +152,7 @@
 			";
 
 			$qr->close();
-			$dblink->close();
+			$db->close();
 		}
 	}
 ?>

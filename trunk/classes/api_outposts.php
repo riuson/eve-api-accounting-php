@@ -13,8 +13,8 @@
 
 			//вывод элемента постраничного просмотра
 
-			$dblink = OpenDB2();
-			$qr = $dblink->query("select count(*) as _count_ from api_outposts;");
+			$db = OpenDB2();
+			$qr = $db->query("select count(*) as _count_ from api_outposts;");
 			$row = $qr->fetch_assoc();
 			$recordsCount = $row["_count_"];
 			$qr->close();
@@ -42,7 +42,7 @@ LEFT JOIN mapSolarSystems ON ( api_outposts.`solarSystemId` = mapSolarSystems.`s
 $sorter limit $pages->start, $pages->count;";
 
 			//$qr = ExecuteQuery($query);
-			$qr = $dblink->query($query);
+			$qr = $db->query($query);
 
 			$rowIndex = $pages->start;
 			$rowClass = "even";
@@ -62,7 +62,7 @@ $sorter limit $pages->start, $pages->count;";
 							<td><a href='index.php?mode=api_corporationsheet&amp;corporationId=$row[corporationId]'>$row[corporationName]</a></td>\n
 						</tr>\n";
 			}
-			$dblink->close();
+			$db->close();
 
 			$page->Body .= "
 				</table>\n

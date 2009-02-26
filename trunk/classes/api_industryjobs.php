@@ -45,7 +45,7 @@
 				if(isset($_REQUEST["installedInSolarSystemId"]))
 				{
 					$installedInSolarSystemId = $_REQUEST["installedInSolarSystemId"];
-					if(preg_match("/^\d+$/", $installedInSolarSystemId) == 0)
+					if(preg_match("/^[\d]{1,10}$/", $installedInSolarSystemId) != 1)
 						$installedInSolarSystemId = null;
 				}
 				if($installedInSolarSystemId == null)

@@ -28,14 +28,15 @@
 			}
 			$fields_count = count($access_fields) + 1;
 
-			$dblink = OpenDB2();
+			$db = OpenDB2();
 
 			//если форма была отправлена, записываем данные в базу
 			if(isset($_POST["form_submit"]))
 			{
 				//получение списка ведомых юзеров
-				$query = "select accountId, characterName from api_users where master = '$characterName';";
-				$qr = $dblink->query($query);
+				$query = sprintf("select accountId, characterName from api_users where master = '%s';",
+					$db->real_escape_string($characterName));
+				$qr = $db->query($query);
 
 				while($row = $qr->fetch_assoc())
 				{
@@ -53,7 +54,7 @@
 					}
 					$query = "update api_users set access = '$query' where accountId = '$row[accountId]';";
 					//echo $query;
-					$dblink->query($query);
+					$db->query($query);
 				}
 				$qr->close();
 			}
@@ -76,8 +77,9 @@
 			$page->Body .= "</tr>";
 
 			//получение списка ведомых юзеров
-			$query = "select * from api_users where master = '$characterName';";
-			$qr = $dblink->query($query);
+			$query = sprintf("select * from api_users where master = '%s';",
+				$db->real_escape_string($characterName));
+			$qr = $db->query($query);
 
 			$rowIndex = 0;
 
@@ -101,7 +103,7 @@
 				$page->Body .= "</tr>";
 			}
 			$qr->close();
-			$dblink->close();
+			$db->close();
 			$page->Body .= "
 	</table>
 	<input type='reset' name='form_reset' value='Сбросить'>

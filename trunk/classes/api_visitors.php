@@ -8,8 +8,8 @@
 		public function PreProcess($page)
 		{
 			//вывод элемента постраничного просмотра
-			$dblink = OpenDB2();
-			$qr = $dblink->query("select count(*) as _count_ from api_visitors;");
+			$db = OpenDB2();
+			$qr = $db->query("select count(*) as _count_ from api_visitors;");
 			$row = $qr->fetch_assoc();
 			$recordsCount = $row["_count_"];
 			$qr->close();
@@ -34,7 +34,7 @@
 					</tr>\n";
 
 			$sorter = $page->GetSorter("name");
-			$qr = $dblink->query("SELECT * FROM `api_visitors` group by address, date(_date_) order by _date_ desc limit $pages->start, $pages->count;");
+			$qr = $db->query("SELECT * FROM `api_visitors` group by address, date(_date_) order by _date_ desc limit $pages->start, $pages->count;");
 
 			$rowIndex = $pages->start;
 			$rowClass = "even";
@@ -60,7 +60,7 @@
 			";
 
 			$qr->close();
-			$dblink->close();
+			$db->close();
 		}
 	}
 ?>

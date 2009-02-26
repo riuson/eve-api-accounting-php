@@ -90,7 +90,8 @@
 			//поиск юзера в базе данных
 			$db = OpenDB2();
 			$query = sprintf("select * from api_users where login = '%s' and password = md5('%s');",
-				$db->real_escape_string($login), $db->real_escape_string($pass));
+				$db->real_escape_string($login),
+				$db->real_escape_string($pass));
 			//$qr = ExecuteQuery($query);
 			$qr = $db->query($query);
 			//$qr = mysql_fetch_array($qr);
@@ -515,9 +516,9 @@
 			$db = OpenDB2();
 			$query = sprintf("replace into api_sessions values ('%s', '%s', '%s', '%s', '%s');",
 				GetUniqueId(),
-				mysql_escape_string(session_id()),
+				$db->real_escape_string(session_id()),
 				$this->parameters["accountId"],
-				$_SERVER["REMOTE_ADDR"],
+				$db->real_escape_string($_SERVER["REMOTE_ADDR"]),
 				date("Y-m-d H:i:s", strtotime("+30 day")));
 			$db->query($query);
 			$db->close();
@@ -527,8 +528,8 @@
 		{
 			$db = OpenDB2();
 			$query = sprintf("delete from api_sessions where sessionId = '%s' and address = '%s';",
-				mysql_escape_string($sessId),
-				$_SERVER["REMOTE_ADDR"]);
+				$db->real_escape_string($sessId),
+				$db->real_escape_string($_SERVER["REMOTE_ADDR"]));
 			//echo $query;
 			$db->query($query);
 			$db->close();

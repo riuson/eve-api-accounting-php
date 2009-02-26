@@ -31,12 +31,12 @@
 				//$User = User::CheckLogin();
 				//$accountId = $User->GetAccountId();
 				$query = "select * from api_account_balance where accountId = '$accountId' order by accountKey;";
-				$dblink = OpenDB2();
+				$db = OpenDB2();
 
 				//загрузка данных в случае, если кошельки никогда ранее не загружались
 				if($User->parameters["master"] == "")
 				{
-					$qr = $dblink->query("select count(*) as _count_ from api_account_balance where accountId = '$accountId';");
+					$qr = $db->query("select count(*) as _count_ from api_account_balance where accountId = '$accountId';");
 					$row = $qr->fetch_assoc();
 					$count = $row["_count_"];
 					$qr->close();
@@ -45,7 +45,7 @@
 						$this->balances = $Api->UpdateAccountBalances();
 				}
 
-				$qr = $dblink->query($query);
+				$qr = $db->query($query);
 
 				$page->Body = "<br>
 <table class='b-border b-widthfull' cellspacing='1' cellpadding='1'>
@@ -86,7 +86,7 @@
 
 				//$this->ProcessSubscribe($dblink, $accountId);
 
-				$dblink->close();
+				$db->close();
 			}
 			//else
 			{

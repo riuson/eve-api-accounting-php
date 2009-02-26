@@ -124,8 +124,7 @@ $where group by ownerName2 $sorter limit $pages->start, $pages->count;";
 				else
 					$rowClass = "b-row-odd";
 
-				$amount = number_format($row["sumAmount"], 2, ",", " ");
-				$amount = str_replace(" ", "&nbsp;", $amount);
+				$amount = $page->FormatNum($row["sumAmount"], 2);
 
 				$page->Body .= "
 	<tr class='$rowClass'>

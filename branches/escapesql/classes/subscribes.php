@@ -77,7 +77,7 @@
 							"insert ignore into api_subscribes set recordId = '%s', accountId = '%s', email='%s', modes = '';",
 							GetUniqueId(),
 							$accountId,
-							mysql_escape_string($email));
+							$db->real_escape_string($email));
 						//echo $query;
 						$db->query($query);
 					}
@@ -94,7 +94,7 @@
 					$query = sprintf(
 						"delete from api_subscribes where accountId = '%s' and email='%s';",
 						$accountId,
-						mysql_escape_string($email));
+						$db->real_escape_string($email));
 					//echo $query;
 					$db->query($query);
 				}

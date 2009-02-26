@@ -81,7 +81,8 @@
 			if(isset($_GET["viewmails"]))
 			{
 				$viewmails = $_GET["viewmails"];
-				if(preg_match("/^\d+$/", $viewmails) == 1)
+				//если строка из 1...10 цифр
+				if(preg_match("/^[\d]{1,10}$/", $viewmails) == 1)
 				{
 					$page->Body .= "<div class='b-widthfull'>Выборка по refId = $viewmails<br>";
 					$qr = $db->query("select * from api_insurance_emails where accountId = '$accountId' and refId = $viewmails;");
@@ -144,7 +145,7 @@
 						$color = "";
 
 					$shipName = base64_decode($row["shipName"]);
-					$insuranceISK = number_format($row["insuranceISK"]);
+					$insuranceISK = $page->FormatNum($row["insuranceISK"], 2);
 
 					$page->Body .= "
 	<tr class='$rowClass'>
@@ -290,11 +291,17 @@
 				"issuedTime = '%s', expiredTime = '%s', ".
 				"shipTypeName = '%s', shipName = '%s', ".
 				"insuranceISK = %d, emailText = '%s', hashtext = '%s';",
-				GetUniqueId(), $accountId, $emailRefId,
-				$emailDate, $emailType,
-				$issuedTime, $expiredTime,
-				mysql_escape_string($shipTypeName), mysql_escape_string($shipName),
-				$summ, base64_encode($emailText), $emailHash);
+				GetUniqueId(), $accountId,
+				$db->real_escape_string($emailRefId),
+				$db->real_escape_string($emailDate),
+				$db->real_escape_string($emailType),
+				$db->real_escape_string($issuedTime),
+				$db->real_escape_string($expiredTime),
+				$db->real_escape_string($shipTypeName),
+				$db->real_escape_string($shipName),
+				$db->real_escape_string($summ),
+				base64_encode($emailText),
+				$emailHash);
 
 			//$db = OpenDB2();
 			$db->query($query);
@@ -344,17 +351,24 @@
 					"insuranceStart = '%s', insuranceEnd = '%s', ".
 					"shipTypeName = '%s', shipName = '%s';",
 					GetUniqueId(), $accountId,
-					$parsedInfo["refId"], $parsedInfo["type"],
-					$parsedInfo["issued"], $parsedInfo["expired"],
-					mysql_escape_string($parsedInfo["shipType"]), base64_encode($parsedInfo["shipName"]));
+					$db->real_escape_string($parsedInfo["refId"]),
+					$db->real_escape_string($parsedInfo["type"]),
+					$db->real_escape_string($parsedInfo["issued"]),
+					$db->real_escape_string($parsedInfo["expired"]),
+					$db->real_escape_string($parsedInfo["shipType"]),
+					base64_encode($parsedInfo["shipName"]));
 
 				$queryUpdate = sprintf("update api_insurance_list set ".
 					"insuranceStart = '%s', ".
 					"shipTypeName = '%s', shipName = '%s' ".
 					"where accountId = '%s' and refId = %d and (insuranceEnd between '%s' and adddate('%s', interval 13 week));",
-					$parsedInfo["issued"],
-					mysql_escape_string($parsedInfo["shipType"]), base64_encode($parsedInfo["shipName"]),
-					$accountId, $parsedInfo["refId"], $parsedInfo["issued"], $parsedInfo["issued"]);
+					$db->real_escape_string($parsedInfo["issued"]),
+					$db->real_escape_string($parsedInfo["shipType"]),
+					base64_encode($parsedInfo["shipName"]),
+					$accountId,
+					$db->real_escape_string($parsedInfo["refId"]),
+					$db->real_escape_string($parsedInfo["issued"]),
+					$db->real_escape_string($parsedInfo["issued"]));
 			}
 
 			if($parsedInfo["type"] == "insurance")
@@ -364,15 +378,21 @@
 					"refId = %d, status = '%s', ".
 					"insuranceEnd = '%s', insuranceISK = %d;",
 					GetUniqueId(), $accountId,
-					$parsedInfo["refId"], $parsedInfo["type"],
-					$parsedInfo["expired"], $parsedInfo["summ"]);
+					$db->real_escape_string($parsedInfo["refId"]),
+					$db->real_escape_string($parsedInfo["type"]),
+					$db->real_escape_string($parsedInfo["expired"]),
+					$db->real_escape_string($parsedInfo["summ"]));
 				$queryUpdate = sprintf("update api_insurance_list set ".
 					"status = '%s', ".
 					"insuranceEnd = '%s', insuranceISK = %d ".
 					"where accountId = '%s' and refId = %d and (insuranceStart between adddate('%s', interval -13 week) and '%s');",
-					$parsedInfo["type"],
-					$parsedInfo["expired"], $parsedInfo["summ"],
-					$accountId, $parsedInfo["refId"], $parsedInfo["expired"], $parsedInfo["expired"]);
+					$db->real_escape_string($parsedInfo["type"]),
+					$db->real_escape_string($parsedInfo["expired"]),
+					$db->real_escape_string($parsedInfo["summ"]),
+					$accountId,
+					$db->real_escape_string($parsedInfo["refId"]),
+					$db->real_escape_string($parsedInfo["expired"]),
+					$db->real_escape_string($parsedInfo["expired"]));
 			}
 
 			if($parsedInfo["type"] == "expired")
@@ -383,13 +403,18 @@
 					"insuranceStart = '%s', insuranceEnd = '%s', ".
 					"shipName = '%s';",
 					GetUniqueId(), $accountId,
-					$parsedInfo["refId"], $parsedInfo["type"],
-					$parsedInfo["issued"], $parsedInfo["expired"],
+					$db->real_escape_string($parsedInfo["refId"]),
+					$db->real_escape_string($parsedInfo["type"]),
+					$db->real_escape_string($parsedInfo["issued"]),
+					$db->real_escape_string($parsedInfo["expired"]),
 					base64_encode($parsedInfo["shipName"]));
 
 				$queryTest = sprintf("select * from api_insurance_list ".
 					"where accountId = '%s' and refId = %d and (insuranceStart between adddate('%s', interval -13 week) and '%s');",
-					$accountId, $parsedInfo["refId"], $parsedInfo["expired"], $parsedInfo["expired"]);
+					$accountId,
+					$db->real_escape_string($parsedInfo["refId"]),
+					$db->real_escape_string($parsedInfo["expired"]),
+					$db->real_escape_string($parsedInfo["expired"]));
 				$qr = $db->query($queryTest);
 				$row = $qr->fetch_assoc();
 				if($row["insuranceISK"] > 0)
@@ -405,10 +430,14 @@
 						"insuranceStart = '%s', insuranceEnd = '%s', ".
 						"shipName = '%s' ".
 						"where accountId = '%s' and refId = %d and (insuranceStart between adddate('%s', interval -13 week) and '%s');",
-						$parsedInfo["type"],
-						$parsedInfo["issued"], $parsedInfo["expired"],
+						$db->real_escape_string($parsedInfo["type"]),
+						$db->real_escape_string($parsedInfo["issued"]),
+						$db->real_escape_string($parsedInfo["expired"]),
 						base64_encode($parsedInfo["shipName"]),
-						$accountId, $parsedInfo["refId"], $parsedInfo["expired"], $parsedInfo["expired"]);
+						$accountId,
+						$db->real_escape_string($parsedInfo["refId"]),
+						$db->real_escape_string($parsedInfo["expired"]),
+						$db->real_escape_string($parsedInfo["expired"]));
 				}
 				else
 				{

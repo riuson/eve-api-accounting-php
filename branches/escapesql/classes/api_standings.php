@@ -15,7 +15,7 @@
 			$accountId = $User->GetAccountId();
 
 			////вывод элемента постраничного просмотра
-			$dblink = OpenDB2();
+			$db = OpenDB2();
 			//$qr = $dblink->query("select count(*) as _count_ from api_alliances;");
 			//$row = $qr->fetch_assoc();
 			//$recordsCount = $row["_count_"];
@@ -120,7 +120,7 @@
 			$sorter = $page->GetSorter("name");
 			$query = "select * from api_standings where accountId = '$accountId' and standsOf = $of and fromTo = $from and target = $target $sorter ;";
 			//echo $query;
-			$qr = $dblink->query($query);
+			$qr = $db->query($query);
 
 			$rowIndex = 0;
 			$rowClass = "even";
@@ -155,7 +155,7 @@
 			";
 
 			$qr->close();
-			$dblink->close();
+			$db->close();
 		}
 	}
 ?>

@@ -108,10 +108,10 @@
 			$db->query(sprintf(
 				"insert into api_visitors set _date_ = '%s', address = '%s', agent = '%s', login = '%s', uri = '%s';",
 				date("Y-m-d H:i:s", time()),
-				mysql_escape_string($_SERVER["REMOTE_ADDR"]),
-				mysql_escape_string($_SERVER["HTTP_USER_AGENT"]),
-				mysql_escape_string($this->User->parameters["login"]),
-				mysql_escape_string($_SERVER["REQUEST_URI"])));
+				$db->real_escape_string($_SERVER["REMOTE_ADDR"]),
+				$db->real_escape_string($_SERVER["HTTP_USER_AGENT"]),
+				$db->real_escape_string($this->User->parameters["login"]),
+				$db->real_escape_string($_SERVER["REQUEST_URI"])));
 			$db->close();
 		}
 
@@ -125,143 +125,6 @@
 				$this->modeObject->PreProcess($this);
 				//$this->Body = $this->mode;
 			}
-		}
-		//здесь вызываются функции во время отправки данных пользователю
-		public function Process()
-		{
-			echo $this->Body;
-		}
-		public function WriteHeader()
-		{
-			/*print("<html>\n");
-			print("<head>\n");
-			print("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n");
-			print("<title>$Title</title>\n");
-			print("<link rel='stylesheet' type='text/css' href='styles.css'/>");
-			if($rss != "empty")
-			print($rss);
-			print("</head>\n");
-			print("<body>\n");*/
-			if(array_key_exists($this->mode, $this->modes) == false)
-				$this->mode = "Index";
-			
-			$title = $this->modes[$this->mode];
-			//$this->title = $title;
-			echo
-//"<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.0 //EN' 'http://www.w3.org/TR/REC-html40/loose.dtd'>
-"<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"
-\"http://www.w3.org/TR/html4/loose.dtd\"><html>
-	<head>
-		<title>$title</title>
-		<meta http-equiv='reply-to' content='rius@mail.ru'>
-		<meta http-equiv='content-type' content='text/html; charset=utf-8'>
-		<meta http-equiv='content-language' content='ru'>
-		<meta http-equiv='robots' content='none'>
-		<meta http-equiv='description' content='$title'>
-		<meta http-equiv='generator' content='Geany'>
-		<link rel='stylesheet' type='text/css' href='ea.css'>";
-
-			//if($rss != "empty")
-			//	echo $rss;
-			echo "
-</head>";
-echo "<body class='b-page'>\n";
-//echo "<body>\n";
-		}
-		function WriteCaption()
-		{
-			if(isset($_SESSION["User"]))
-				$User = $_SESSION["User"];
-			else
-				$User = new User("empty");
-
-			$Api = new ApiInterface("");
-			//$Api->userid = $User->parameters["userId"];
-			//$Api->apikey = $User->parameters["apiKey"];
-			//print_r($Api);
-			//$serverStatus = $Api->GetServerStatus();
-
-			$login = $User->parameters["login"];
-
-			echo "<div class='b-page-caption'>";
-			//echo "<div id='top'>";
-
-			if($login != "")
-				echo "<a href='index.php?mode=Index'>Начало</a> Вы вошли как: <span class='b-nick'><a href='index.php?mode=ChangeDetails'>$login</a></span> <a href='index.php?mode=Logout'>Выход</a><br>";
-			else
-				echo "<span class='b-nick'>Гость</span>, <a href='index.php?mode=Login'>Войти</a><br>";
-
-			if($serverStatus["serverOpen"] == "True")
-				$serverOnline = "Online";
-			else
-				$serverOnline = "Offline";
-			echo "EVE Online статус: $serverOnline, $serverStatus[onlinePlayers] пилотов, $serverStatus[now]<br>";
-
-/*			$links = array(
-				"api_alliances.php" => "Альянсы",
-				"api_outposts.php" => "Аутпосты",
-				"api_errors.php" => "Ошибки API",
-				"api_facwartopstats.php" => "Топ фракционных войн",
-				".php" => "",
-				".php" => "",
-			);*/
-			//$index = 0;
-
-			$linkstr = "";
-			foreach ($this->modes as $k=>$v)
-			{
-				if(preg_match("/(\W|^)$k(\W|$)/", Page::GetSystemLinks()) == 0)
-				{
-					if($this->User->CheckAccessRights($k, false) == false)
-					{
-						//$linkstr .= "@";
-						$class = "b-menu-restricted";
-					}
-					else
-										{
-						$class = "b-menu-allowed";
-						//$linkstr .= "#";
-					}
-
-					if(preg_match("/mode=$k/i", $_SERVER["REQUEST_URI"]) == 0 && $class == "b-menu-allowed")
-					{
-						$linkstr = $linkstr . "<li class='$class'><a href='index.php?mode=$k'>$v</a>\n";
-					}
-					else
-					{
-						$linkstr = $linkstr . "<li class='$class'>$v\n";
-					}
-				}
-				//$index++;
-			}
-			//if($linkstr != "")
-			//	$linkstr = "Общедоступная информация: " . $linkstr;
-			if($linkstr != "")
-				$linkstr = "<ul type='disc'>" . $linkstr . "</ul>";
-			//echo "$linkstr<br>";
-
-			echo "</div>";
-			//"<div class='b-content'>
-			//       <div class='b-content-menu'>$linkstr</div>
-			//        <div class='b-content-main'>
-			//";
-			//echo "<table class='b-content'><tr><td class='b-content-menu'>$linkstr</td><td class='b-content-main'>";
-			echo "<div class='b-content-menu'>$linkstr</div>";
-			//echo "<div id='content'>";
-			echo "<div class='b-content-main'>";
-			//<div class='maincontent'>";
-
-		}
-		function WriteFooter()
-		{
-			$this->timer->stop();
-			$time = $this->timer->getTime();
-			echo "</div>";
-			//echo "</td></tr></table>
-			//<div class='b-page-footer'>Время сборки страницы $time с.</div>
-			//echo "<div id='bottom'>Время сборки страницы $time с.</div>";
-			
-			echo "</body>\n</html>\n";
 		}
 		function WriteSorter($list, $uri = null)
 		{
@@ -280,6 +143,7 @@ echo "<body class='b-page'>\n";
 					$uri .= "?orderby=query";
 				//echo "$uri";
 			}
+			//query будет потом заменён на столбец сортировки
 
 			$sorter = "";
 			if(isset($_REQUEST["orderby"]))
@@ -456,7 +320,14 @@ echo "<body class='b-page'>\n";
 				$serverOnline = "Online";
 			else
 				$serverOnline = "Offline";
-			$serverStatus = "EVE статус: $serverOnline, $serverStatus[onlinePlayers] пилотов<br>$serverStatus[now]";
+
+			$pilots = "пилотов";
+			if(($serverStatus["onlinePlayers"] % 10) == 1 && $serverStatus["onlinePlayers"] != 11)
+				$pilots = "пилот";
+			if(($serverStatus["onlinePlayers"] % 10) >= 2 && ($serverStatus["onlinePlayers"] % 10) <= 4)
+				$pilots = "пилота";
+
+			$serverStatus = "EVE сервер: $serverOnline, $serverStatus[onlinePlayers] $pilots<br>$serverStatus[now]";
 			
 			$this->timer->stop();
 			$time = $this->timer->getTime();

@@ -142,8 +142,8 @@
 
 
 			$refTypes = array();
-			$dblink = OpenDB2();
-			$qr = $dblink->query("select * from api_reftypes order by refTypeName;");
+			$db = OpenDB2();
+			$qr = $db->query("select * from api_reftypes order by refTypeName;");
 			while($row = $qr->fetch_assoc())
 			{
 				$refTypes[$row["refTypeId"]] = $row["refTypeName"];
@@ -173,7 +173,7 @@
 				$where .= " and api_wallet_journal.refTypeId in ($selRefs)";
 
 			//подсчёт числа подходящих строк
-			$qr = $dblink->query("select count(*) as _count_ from api_wallet_journal $where;");
+			$qr = $db->query("select count(*) as _count_ from api_wallet_journal $where;");
 			$row = $qr->fetch_assoc();
 			$recordsCount = $row["_count_"];
 			$qr->close();
@@ -248,7 +248,7 @@
 "select api_wallet_journal.*, api_reftypes.refTypeName from api_wallet_journal\n
 left join api_reftypes on api_wallet_journal.refTypeId = api_reftypes.refTypeId\n
 $where $sorter limit $pages->start, $pages->count;";
-			$qr = $dblink->query($query);
+			$qr = $db->query($query);
 
     		$rowIndex = $pages->start;
 			while($row = $qr->fetch_assoc())
@@ -259,10 +259,8 @@ $where $sorter limit $pages->start, $pages->count;";
 					$rowClass = "b-row-odd";
 
 				$walletName = $divisions[$row["accountKey"]];
-				$amount = number_format($row["amount"], 2, ",", " ");
-				$balance = number_format($row["balance"], 2, ",", " ");
-				$amount = str_replace(" ", "&nbsp;", $amount);
-				$balance = str_replace(" ", "&nbsp;", $balance);
+				$amount = $page->FormatNum($row["amount"], 2);
+				$balance = $page->FormatNum($row["balance"], 2);
 				$page->Body .= "
 	<tr class='$rowClass'>
 		<td>$rowIndex</td>
@@ -286,7 +284,7 @@ $where $sorter limit $pages->start, $pages->count;";
 			$page->Body .= $pages->Write($recordsCount);
 			$qr->close();
 			
-			$dblink->close();
+			$db->close();
 
 		}
 	}

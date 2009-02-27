@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#Настройка автоматического обновления данных.
 
 == Содержание ==
 

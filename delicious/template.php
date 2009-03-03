@@ -24,8 +24,7 @@
 		$result .= "
 <!-- CSS -->
 <link rel=\"stylesheet\" href=\"delicious/css/style.css\" type=\"text/css\" media=\"screen, projection, tv\" />
-<!--[if lte IE 6]><link rel=\"stylesheet\" type=\"text/css\" href=\"css/style-ie.css\" media=\"screen, projection, tv\" /><![endif]-->
-<link rel=\"stylesheet\" href=\"css/style-print.css\" type=\"text/css\" media=\"print\" />
+<link rel=\"stylesheet\" href=\"delicious/css/style-print.css\" type=\"text/css\" media=\"print\" />
 
 <link rel=\"shortcut icon\" href=\"favicon.ico\" type=\"image/x-icon\" />
 

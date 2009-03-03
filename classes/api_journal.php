@@ -198,8 +198,8 @@
 					$sel = "selected";
 				else
 					$sel = "";
-				$k = htmlentities($k);
-				$v = htmlentities($v);
+				$k = $k;
+				$v = $v;
 				$page->Body .= "<option value='$k' $sel>[$k] $v</option>";
 			}
 			$page->Body .= "

@@ -1647,6 +1647,7 @@
 			$params["version"] = "2";
 			$apires = $this->ApiRequest("/corp/Standings.xml.aspx", $params);
 			$result = $apires;
+			$result["message"] = "";
 
 			$arTargets = array(
 				"characters" => 1,
@@ -1715,7 +1716,7 @@
 			}
 			else
 			{
-				$result = "";//$apires[2];
+				//$result = "";//$apires[2];
 			}
 			return $result;
 		}

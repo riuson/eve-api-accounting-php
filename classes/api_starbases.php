@@ -321,9 +321,9 @@ CPU $cpu of $starbase->cpuMax max ($cpuPercent%),&nbsp;Power $power of $starbase
 </tr>";
 				$page->Body .= "</table></p>";
             }
-			//$page->Body .= "<br><div class='b-border b-widthfull'><pre>";
-			//$page->Body .= htmlentities(($starbase->details->saveXML()));
-			//$page->Body .= "</pre></div><br>";
+			$page->Body .= "<br><div class='b-border b-widthfull'><pre>";
+			$page->Body .= htmlentities(($starbase->details->saveXML()));
+			$page->Body .= "</pre></div><br>";
 		}
 
 		function ProcessSubscribe($db, $accountId)
@@ -335,6 +335,7 @@ CPU $cpu of $starbase->cpuMax max ($cpuPercent%),&nbsp;Power $power of $starbase
 			$user = new User("");
 			if($user->GetUserInfo($accountId))
 			{
+				$link = "http://ea.mylegion.ru/index.php?mode=" . get_class($this);
 				$user->CheckAccessRights(get_class($this), true);
 
 				$Api = new ApiInterface($user->GetAccountId());
@@ -381,7 +382,7 @@ WHERE api_starbases.accountId = '$accountId' and api_starbases.endTimestamp < '$
 							$index++;
 							$message .= "<tr>
 								<td align='center'>$index</td>
-								<td align='center'><a href='{$this->request_processor}&amp;itemId=$row[itemId]'>$row[moonName]</a></td>
+								<td align='center'><a href='$link&amp;itemId=$row[itemId]'>$row[moonName]</a></td>
 								<td align='center'>$row[typeName]</td>
 								<td align='center'>{$this->knownStates[$row["state"]]}</td>
 								<td align='center'>$row[stateTimestamp]</td>
@@ -393,9 +394,8 @@ WHERE api_starbases.accountId = '$accountId' and api_starbases.endTimestamp < '$
 						$qr->close();
 					}
 					$message .= "</table><br>";
-					$link = "http://ea.mylegion.ru/index.php?mode=" . get_class($this);
 					$message .= "<a href='$link'>$link</a>";
-					//$message .= $details;
+					$message .= $details;
 					$message .= "</body></html>";
 
 					$subject = "Состояние посов корпорации $corpInfo[corporationName]";

@@ -197,12 +197,13 @@
 	}\n
 </script>\n";
 			$page->Body .= 
-"
+"<p>Ключ (ApiKey) можно получить здесь: <a href='http://myeve.eve-online.com/api/default.asp'>http://myeve.eve-online.com/api/default.asp</a>. 
+Для нормальный работы требуется ключ с полным доступом (Full ApiKey) и соответствующие роли у персонажа в корпорации.<br>
+Также можно подключиться к другому аккаунту и работать с его данными, получаемыми с его ApiKey. Для этого надо выбрать радиокнопку <b>ApiKey другого аккаунта</b>.<br>
+Права доступа к информации другого аккаунта в этом случае будут только после назначения их хозяином другого аккаунта.
+При изменении регистрационных данных права доступа сбрасываются на умолчание (полное отсутствие прав).</p>
 <form method='post' name='registration' action='$login_processor'>
 	<table class='b-login b-border'>
-		<tr class='b-table-caption'>
-			<td colspan='2' class='login_caption'>EA Accounting: Регистрация</td>
-		</tr>
 		<tr>
 			<td>Логин:</td>
 			<td><input type='text' name='login' class='login_text' value='$login'></td>
@@ -220,7 +221,7 @@
 			<td><input type='text' name='characterName' id='characterName' class='login_text' value='$characterName'></td>
 		</tr>
 		<tr>
-			<td>Свой apiKey:</td>
+			<td>У вас есть свой ApiKey:</td>
 			<td colspan='2'><input type='radio' name='type' class='login_text' value='master' $checkedMaster onChange='changeType(this.value);'></td>
 		</tr>
 		<tr>
@@ -243,7 +244,7 @@
 			<td><select onChange=\"selectCharacterName()\" id='charSelector' class='login_text' $disabledMaster></select></td>
 		</tr>
 		<tr>
-			<td>Чужой apiKey:</td>
+			<td>ApiKey другого аккаунта:</td>
 			<td colspan='2'><input type='radio' name='type' class='login_text' value='slave' $checkedSlave onChange='changeType(this.value);'></td>
 		</tr>
 		<tr>

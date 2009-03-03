@@ -9,6 +9,7 @@
 		var $debug = true;
 		var $timer;
 		var $modeObject;
+		var $igb;
 		
 		var $Body;
 		var $User;
@@ -95,16 +96,13 @@
 				//$this->mode = "index";
 				header("Location:index.php?mode=Index");
 			
-			//if($this->debug) echo "<p>mode: $this->mode</p>";
 			$this->Body = "";
 			$this->User = User::CheckLogin(false);
 			if($this->User == null)
 				$this->User = new User("empty");
-			//echo "#";
-			//print_r($this->User);
-			//echo "#";
-			$db = OpenDB2();
 			
+			//запись посетителя в лог
+			$db = OpenDB2();
 			$db->query(sprintf(
 				"insert into api_visitors set _date_ = '%s', address = '%s', agent = '%s', login = '%s', uri = '%s';",
 				date("Y-m-d H:i:s", time()),
@@ -113,6 +111,16 @@
 				$db->real_escape_string($this->User->parameters["login"]),
 				$db->real_escape_string($_SERVER["REQUEST_URI"])));
 			$db->close();
+
+			//определение igb
+			if(isset($_SERVER["HTTP_USER_AGENT"]))
+				$userAgent = $_SERVER["HTTP_USER_AGENT"];
+			else
+				$userAgent = "unknown";
+			if(preg_match("/eve/i", $userAgent) != 0)
+				$this->igb = true;
+			else
+				$this->igb = false;
 		}
 
 		//здесь вызываются функции до отправки данных пользователю
@@ -249,11 +257,7 @@
 		function WriteHtml()
 		{
 			//include_once "darkit/template.php";
-			if(isset($_SERVER["HTTP_USER_AGENT"]))
-				$userAgent = $_SERVER["HTTP_USER_AGENT"];
-			else
-				$userAgent = "unknown";
-			if(preg_match("/eve/i", $userAgent) != 0)
+			if($this->igb == true)
 				include_once "minibrowser/template.php";
 			else
 				include_once "delicious/template.php";

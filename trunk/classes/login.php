@@ -71,9 +71,6 @@
 				$page->Body = "
 				 <form method='post' action='$request_processor'>\n
 						<table class='b-login b-border'>\n
-							<tr class='b-table-caption'>\n
-								<td colspan='2' class='login_caption'>EA Accounting</td>\n
-							</tr>\n
 							<tr>\n
 								<td>Логин:</td>\n
 								<td><input type='text' name='login' class='login_text' value='$login'></td>\n

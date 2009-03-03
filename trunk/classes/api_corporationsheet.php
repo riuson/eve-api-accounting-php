@@ -83,8 +83,8 @@
 					{
 						$str .= sprintf("<tr><td class='b-center'>%s</td><td class='b-center'>%s</td><td class='b-center'>%s</td></tr>",
 							$i,
-							htmlentities($corporationInfo["divisions"][$i]),
-							htmlentities($corporationInfo["walletDivisions"][$i]));
+							$corporationInfo["divisions"][$i],
+							$corporationInfo["walletDivisions"][$i]);
 					}
 					$str .= "</table>
 	</td>

@@ -57,6 +57,7 @@
 </tr>";
 				$index = 0;
 				$wallets = $this->corpInfo["walletDivisions"];
+				//print_r($wallets);
 				while($row = $qr->fetch_assoc())
 				{
 					//print_r($qr);					if($index  % 2 == 1)
@@ -67,7 +68,7 @@
 
 					$page->Body .= "<td class='b-center'>$row[accountKey]</td>";
 					$walletName = $wallets[$row["accountKey"]];
-					$page->Body .= "<td class='b-center'>" . htmlentities($walletName) . "</td>";
+					$page->Body .= "<td class='b-center'>" . $walletName . "</td>";
 
 					$balance = number_format($row["balance"], 2, ",", " ");
 					$balance = str_replace(" ", "&nbsp;", $balance);
@@ -133,7 +134,7 @@
 
 					$message .= "<td align='center' valign='middle'>$row[accountKey]</td>";
 					$walletName = $wallets[$row["accountKey"]];
-					$message .= "<td align='center' valign='middle'>" . htmlentities($walletName) . "</td>";
+					$message .= "<td align='center' valign='middle'>" . $walletName . "</td>";
 
 					$balance = number_format($row["balance"], 2);
 					$message .= "

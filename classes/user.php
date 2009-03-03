@@ -100,6 +100,12 @@
 			//print($qr->num_rows);
 			if($qr == null || $qr->num_rows == 0)
 			{
+				if($login != null && $login != "")
+				{
+					$query = sprintf("insert into api_log set _date_ = now(), message = '%s';",
+						$db->real_escape_string("Login failed as ($login, $pass) from $_SERVER[REMOTE_ADDR]"));
+					$db->query($query);
+				}
 				//print_r($User);
 				//echo $query;
 				$this->Clear();

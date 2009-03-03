@@ -171,7 +171,7 @@
 					$result["cached"] = $row["cached"];
 					$result["cachedUntil"] = $row["cachedUntil"];
 					//если $cachedUntil < $now, то время обновиться пришло
-					//если $cachedUntil < $now, то берём прошлый результат запроса из кеша
+					//если $cachedUntil > $now, то берём прошлый результат запроса из кеша
 					if($cachedUntil < $now)//обновляемся
 					{
 						$url_without_spaces = str_replace(" ", "%20", $uri);

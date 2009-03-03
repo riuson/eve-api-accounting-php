@@ -38,7 +38,7 @@
 			$str .= $apires["message"];
 			$msg .= "<br>";
 			
-			$db->query("insert into api_updater_log set _date_ = now(), message = '" . mysql_escape_string($str) . "';");
+			$db->query("insert into api_log set _date_ = now(), message = '" . $db->real_escape_string($str) . "';");
 		}
 		$qr->close();
 		$db->close();

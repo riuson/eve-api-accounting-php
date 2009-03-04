@@ -225,9 +225,6 @@
 			$page->Body .= "
 <form method='post' name='registration' action='$request_processor'>
 	<table class='b-login b-border'>
-		<tr class='b-table-caption'>
-			<td colspan='2' class='login_caption'>EA Accounting: Изменение данных</td>
-		</tr>
 		<tr>
 			<td>Логин:</td>
 			<td><input type='text' name='login' class='login_text' value='$login'></td>
@@ -245,7 +242,7 @@
 			<td><input type='text' name='characterName' class='login_text' value='$characterName'></td>
 		</tr>
 		<tr>
-			<td>Свой apiKey:</td>
+			<td>У вас есть свой ApiKey:</td>
 			<td colspan='2'><input type='radio' name='type' class='login_text' value='master' $checkedMaster onChange='changeType(this.value);'></td>
 		</tr>
 		<tr>
@@ -261,7 +258,7 @@
 			<td><input type='text' name='characterId' class='login_text' value='$characterId' $disabledMaster></td>
 		</tr>
 		<tr>
-			<td>Чужой apiKey:</td>
+			<td>ApiKey другого аккаунта:</td>
 			<td colspan='2'><input type='radio' name='type' class='login_text' value='slave' $checkedSlave onChange='changeType(this.value);'></td>
 		</tr>
 		<tr>

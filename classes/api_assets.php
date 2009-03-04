@@ -475,7 +475,7 @@ else (
 end as locationName, invTypes.typeName, sum(api_assets.quantity) as quantity
 from api_assets_monitor as a
 left join invTypes on invTypes.typeID = a.typeId
-left join api_assets on (api_assets.typeId = a.typeId and api_assets.locationId = a.locationId)
+left join api_assets on (api_assets.typeId = a.typeId and api_assets.locationId = a.locationId and api_assets.accountId = '$accountId')
 where a.accountId = '$accountId' group by a.typeId, a.locationId $sorter;";
 
 			//$qr = ExecuteQuery($query);

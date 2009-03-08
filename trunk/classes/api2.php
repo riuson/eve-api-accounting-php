@@ -1344,56 +1344,75 @@
 					//if($bar != null) $bar->initialize($nodes->length);
 
 					$db = OpenDB2();
-					//$db->query("delete * from api_member_tracking where accountId = '$this->accountId';");
+
+					//подготовка обновления
+					$query = sprintf(
+						"update api_member_tracking set updated = 0 where accountId = '%s';",
+						$this->accountId);
+					$db->query($query);
 
 					foreach($nodes as $node)
 					{
 						//if($bar != null) $bar->increase();
 
 						//вместо прежней проверки и вставки/обновления теперь делаем insert ignore и update
-						$recordId = GetUniqueId();
+						//$recordId = GetUniqueId();
 						$now = date("Y-m-d H:i:s");
 
+						//replace into заменяет не указанные значения на умолчания, поэтому не подходит
+						//вставка новой записи
 						$query = sprintf(
-							"insert ignore into api_member_tracking set ".
-							"recordId = '%s', accountId = '%s', ".
+							"insert ignore api_member_tracking set ".
+							"accountId = '%s', ".
 							"characterId = %d, name = '%s', startDateTime = '%s', ".
 							"baseId = %d, base = '%s', title = '%s', ".
 							"logonDateTime = '%s', logoffDateTime = '%s', ".
 							"locationId = %d, location = '%s', ".
 							"shipTypeId = %d, shipType = '%s', ".
-							"roles = %d, grantableRoles = %d, updated = '$now';",
-							$recordId, $this->accountId,
+							"roles = %d, grantableRoles = %d, updated = 1, incorp = 0 ".
+
+							"on duplicate key update ".
+							"startDateTime = '%s', ".
+							"logonDateTime = '%s', logoffDateTime = '%s', ".
+							"locationId = %d, location = '%s', ".
+							"shipTypeId = %d, shipType = '%s', ".
+							"roles = %d, grantableRoles = %d, updated = 1".
+							";",
+							$this->accountId,
 							$node->getAttribute("characterID"), mysql_escape_string($node->getAttribute("name")), $node->getAttribute("startDateTime"),
 							$node->getAttribute("baseID"), mysql_escape_string($node->getAttribute("base")), mysql_escape_string($node->getAttribute("title")),
 							$node->getAttribute("logonDateTime"), $node->getAttribute("logoffDateTime"),
 							$node->getAttribute("locationID"), mysql_escape_string($node->getAttribute("location")),
 							$node->getAttribute("shipTypeID"), mysql_escape_string($node->getAttribute("shipType")),
-							$node->getAttribute("roles"), $node->getAttribute("grantableRoles")
-							);
-						$db->query($query);
-						//echo "$query<br>";
-						$query = sprintf(
-							"update api_member_tracking set ".
-							"name = '%s', startDateTime = '%s', ".
-							"baseId = %d, base = '%s', title = '%s', ".
-							"logonDateTime = '%s', logoffDateTime = '%s', ".
-							"locationId = %d, location = '%s', ".
-							"shipTypeId = %d, shipType = '%s', ".
-							"roles = %d, grantableRoles = %d, updated = '$now' ".
-							"where accountId = '%s' and characterId = %d;",
-							mysql_escape_string($node->getAttribute("name")), $node->getAttribute("startDateTime"),
-							$node->getAttribute("baseID"), mysql_escape_string($node->getAttribute("base")), mysql_escape_string($node->getAttribute("title")),
+							$node->getAttribute("roles"), $node->getAttribute("grantableRoles"),
+
+							$node->getAttribute("startDateTime"),
 							$node->getAttribute("logonDateTime"), $node->getAttribute("logoffDateTime"),
 							$node->getAttribute("locationID"), mysql_escape_string($node->getAttribute("location")),
 							$node->getAttribute("shipTypeID"), mysql_escape_string($node->getAttribute("shipType")),
-							$node->getAttribute("roles"), $node->getAttribute("grantableRoles"),
-							$this->accountId, $node->getAttribute("characterID")
+							$node->getAttribute("roles"), $node->getAttribute("grantableRoles")
 							);
+						$query = str_replace("553915838", "553915839", $query);
 						$db->query($query);
 					}
-					$old = date("Y-m-d H:i:s", strtotime("-3 second"));
-					$db->query("delete from api_member_tracking where accountId = '$this->accountId' and updated < '$old';");
+					//после обновления флаг updated ставится в 1
+					//для новых записей incorp по умолчанию 1
+
+					//у кого incorp = 1 и updated = 0, тот вышел из корпы
+					$query = sprintf(
+						"update api_member_tracking set joinlog = concat(joinlog, '#out $now'), incorp = 0 where incorp = 1 and updated = 0 and accountId = '%s';",
+						$this->accountId);
+					$db->query($query);
+
+					//у кого incorp = 0 и updated = 1, тот пришёл в корпу
+					$query = sprintf(
+						"update api_member_tracking set joinlog = concat(joinlog, '#joined %s'), incorp = 1 where incorp = 0 and updated = 1 and accountId = '%s';",
+						$node->getAttribute("startDateTime"),
+						$this->accountId);
+					$db->query($query);
+
+					//$old = date("Y-m-d H:i:s", strtotime("-3 second"));
+					//$db->query("delete from api_member_tracking where accountId = '$this->accountId';");
 					$db->close();
 				}
 			}

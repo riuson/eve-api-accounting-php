@@ -10,6 +10,13 @@
 
 		public function PreProcess($page)
 		{
+			/*
+			 * Режимы:
+			 * 1. просмотр списка локаций с припасами;
+			 * 2. просмотр припасов в выбранной локации;
+			 * 3. просмотр списка слежения за припасами;
+			 * 4. добавление нового элемента в слежение;
+			 */
 			$User = User::CheckLogin();
 			$User->CheckAccessRights(get_class($this), true);
 
@@ -128,36 +135,32 @@
 				}
 			}
 
+			$page->Body = "";
+
 			if($viewmonitor == null)
-			{
 				$page->Body = "<a href='{$this->request_processor}&amp;viewmonitor'>Просмотр таблицы слежения за запасами</a><br>";
-			}
-			else
-			{
-				$page->Body = "";
-			}
-			$page->Body .= "<a href='{$this->request_processor}&amp;newmonitor'>Добавление нового объекта слежения</a><br>";
+			if($newmonitor == null)
+				$page->Body .= "<a href='{$this->request_processor}&amp;newmonitor'>Добавление нового объекта слежения</a><br>";
 
 			// добавление нового монитора
 			if($newmonitor != null)
 			{
 				$this->ShowNewMonitor($page);
 			}
-			// просмотр перечня локаций ********************************
-			//если никакой подрежим не выбран
-			if($locationId == null && $viewmonitor == null && $newmonitor == null)
-			{
-				$this->ShowLocationsList($page, $accountId);
-			}
 			// просмотр содержимого локации ****************************
-			if($locationId != null && $newmonitor == null)
+			else if($locationId != null)
 			{
 				$this->ShowItemsInLocation($page, $accountId, $locationId);
 			}
 			// просмотр списка мониторинга *****************************
-			else if($viewmonitor != null && $newmonitor == null)
+			else if($viewmonitor != null)
 			{
 				$this->ShowMonitoringList($page, $accountId);
+			}
+			// просмотр перечня локаций, если никакой подрежим не выбран
+			else
+			{
+				$this->ShowLocationsList($page, $accountId);
 			}
 			//$this->ProcessSubscribe($db, $accountId, $page);
 			$db->close();

@@ -29,7 +29,7 @@ min-width: 900px;
 a:link, a:visited {
 color: #FFC750;
 text-decoration: underline;
-font-weight: bold;
+/*font-weight: bold;*/
 }
 
 a:hover {
@@ -425,4 +425,29 @@ color: #FFFFFF;
 .b-table-caption
 {
 	background-color: #585858;
+}
+
+.suggest_link
+{
+	background-color: #FFFFFF;
+	padding: 2px 6px 2px 6px;
+}
+.suggest_link_over
+{
+	background-color: #3366CC;
+	padding: 2px 6px 2px 6px;
+}
+div.search_suggest
+{
+	background-color: #000000;
+	position: absolute;
+	text-align: left;
+	#border: 1px solid #DBCDB3;
+}
+div.search_suggest p
+{
+	border-left: 1px solid #DBCDB3;
+	/*top right bottom left*/
+	padding: 0px 10px 0px 10px;
+	margin: 10px;
 }

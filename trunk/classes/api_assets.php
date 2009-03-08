@@ -19,10 +19,11 @@
 			$Api->characterId = $User->GetCharacterId();
 
 			$accountId = $User->GetAccountId();
-			//$Api = new ApiInterface("");
-
-			//$Api->UpdateOutposts();
 			$this->request_processor = $_SERVER["PHP_SELF"] . "?mode=" . get_class($this);
+
+			$locationId = null;
+			$viewmonitor = null;
+			$newmonitor = null;
 
 			//локация, если параметр передан, но не является числом, считаем что он не передан
 			if(isset($_REQUEST["locationId"]))
@@ -31,14 +32,14 @@
 				if(preg_match("/^[\d]{1,10}$/", $locationId) != 1)
 					$locationId = null;
 			}
-			else
-				$locationId = null;
 
 			//просмотр списка слежения
 			if(isset($_REQUEST["viewmonitor"]))
 				$viewmonitor = true;
-			else
-				$viewmonitor = null;
+
+			//добавление нового слежения
+			if(isset($_REQUEST["newmonitor"]))
+				$newmonitor = true;
 
 
 			//вывод элемента постраничного просмотра
@@ -55,6 +56,78 @@
 
 //дерево с ветками http://www.artlebedev.ru/tools/technogrette/html/treeview/#
 
+			if(isset($_POST["submit_new_monitor"]))
+			{
+				// loctype locname itemname monmin monnorm
+				$loctype  = $_POST["loctype"];
+				$locname  = $_POST["locname"];
+				$itemname = $_POST["itemname"];
+				$monmin   = $_POST["monmin"];
+				$monnorm   = $_POST["monnorm"];
+				if(preg_match("/^\d+$/", $monmin) != 1)
+					$monmin = 10;
+				if(preg_match("/^\d+$/", $monnorm) != 1)
+					$monnorm = 10;
+
+				$locId = 0;
+				//echo $loctype;
+				if($loctype == "staStations")
+				{
+					$query = sprintf("select stationID from staStations where stationName = '%s' limit 1;", $db->real_escape_string($locname));
+					$qr = $db->query($query);
+					if($row = $qr->fetch_assoc())
+					{
+						$locId = $row["stationID"] + 6000001;
+					}
+					$qr->close();
+				}
+				if($loctype == "api_outposts")
+				{
+					$query = sprintf("select stationId from api_outposts where stationName = '%s' limit 1;", $db->real_escape_string($locname));
+					$qr = $db->query($query);
+					if($row = $qr->fetch_assoc())
+					{
+						$locId = $row["stationId"] + 6000000;
+					}
+					$qr->close();
+				}
+				if($loctype == "mapDenormalize")
+				{
+					$query = sprintf("select itemID from mapDenormalize where itemName = '%s' limit 1;", $db->real_escape_string($locname));
+					$qr = $db->query($query);
+					if($row = $qr->fetch_assoc())
+					{
+						$locId = $row["itemID"];
+					}
+					$qr->close();
+				}
+				
+				$typeId = 0;
+				$itemname = str_replace("\'", "'", $itemname);
+				$query = sprintf("select typeID from invTypes where typeName = '%s' limit 1;", $db->real_escape_string($itemname));
+				$qr = $db->query($query);
+				if($row = $qr->fetch_assoc())
+				{
+					$typeId = $row["typeID"];
+				}
+				$qr->close();
+				
+				//echo "<pre>$itemname</pre> $locId $typeId";
+				if($locId != 0 && $typeId != 0)
+				{
+					$query = sprintf("insert ignore into api_assets_monitor set recordId = '%s', accountId = '%s', locationId = %d, typeId = %d, quantityMinimum = %d, quantityNormal = %d;",
+						GetUniqueId(),
+						$db->real_escape_string($accountId),
+						$db->real_escape_string($locId),
+						$db->real_escape_string($typeId),
+						$db->real_escape_string($monmin),
+						$db->real_escape_string($monnorm));
+					//echo $query;
+					$db->query($query);
+					$viewmonitor = true;
+				}
+			}
+
 			if($viewmonitor == null)
 			{
 				$page->Body = "<a href='{$this->request_processor}&amp;viewmonitor'>Просмотр таблицы слежения за запасами</a><br>";
@@ -63,20 +136,26 @@
 			{
 				$page->Body = "";
 			}
+			$page->Body .= "<a href='{$this->request_processor}&amp;newmonitor'>Добавление нового объекта слежения</a><br>";
 
+			// добавление нового монитора
+			if($newmonitor != null)
+			{
+				$this->ShowNewMonitor($page);
+			}
 			// просмотр перечня локаций ********************************
 			//если никакой подрежим не выбран
-			if($locationId == null && $viewmonitor == null)
+			if($locationId == null && $viewmonitor == null && $newmonitor == null)
 			{
 				$this->ShowLocationsList($page, $accountId);
 			}
 			// просмотр содержимого локации ****************************
-			if($locationId != null)
+			if($locationId != null && $newmonitor == null)
 			{
 				$this->ShowItemsInLocation($page, $accountId, $locationId);
 			}
 			// просмотр списка мониторинга *****************************
-			else if($viewmonitor != null)
+			else if($viewmonitor != null && $newmonitor == null)
 			{
 				$this->ShowMonitoringList($page, $accountId);
 			}
@@ -132,6 +211,134 @@ $sorter;";
 			}
 		}
 
+		function ShowNewMonitor($page)
+		{
+			$page->Body .= "
+</style>
+<script src=\"lib/JsHttpRequest/JsHttpRequest.js\"></script>
+<script language='JavaScript'>
+	function locationAutoSuggest()
+	{
+		loc = document.getElementById('locname').value;
+		if(loc.length < 3)
+		{
+			document.getElementById('locations_list').innerHTML = \"\";
+		}
+		else
+		{
+			//alert(loc);
+			JsHttpRequest.query(
+				'classes/api_assets_backend.php',
+				{
+					'function' : 'locations_by_name',
+					'location': loc
+				},
+				// Function is called when an answer arrives. 
+				function(result, errors)
+				{
+					//alert(errors);
+					// Write errors to the debug div.
+					document.getElementById('debug').innerHTML = errors; 
+					// Write the answer.
+					if (result)
+					{
+						locations = result[\"locations\"];
+						//alert(locations);
+						document.getElementById('locations_list').innerHTML = locations;
+					}
+				},
+				true  // disable caching
+			);
+			document.getElementById('locations_list').innerHTML = '<p>Идёт загрузка, подождите пожалуйста...</p>';
+		}
+	}
+	function itemAutoSuggest()
+	{
+		item = document.getElementById('itemname').value;
+		if(item.length < 3)
+		{
+			document.getElementById('items_list').innerHTML = \"\";
+		}
+		else
+		{
+			//alert(item);
+			JsHttpRequest.query(
+				'classes/api_assets_backend.php',
+				{
+					'function' : 'items_by_name',
+					'item': item
+				},
+				// Function is called when an answer arrives. 
+				function(result, errors)
+				{
+					//alert(errors);
+					// Write errors to the debug div.
+					document.getElementById('debug').innerHTML = errors; 
+					// Write the answer.
+					if (result)
+					{
+						items = result[\"items\"];
+						//alert(items);
+						document.getElementById('items_list').innerHTML = items;
+					}
+				},
+				true  // disable caching
+			);
+			document.getElementById('items_list').innerHTML = '<p>Идёт загрузка, подождите пожалуйста...</p>';
+		}
+	}
+	function clearSuggestList()
+	{
+		//alert('clear');
+		document.getElementById('locations_list').innerHTML = \"\";
+		document.getElementById('items_list').innerHTML = \"\";
+	}
+	function applyLocation(locationName, locType)
+	{
+		for (i=0;i<document.form_new_item.loctype.length;i++)
+		{
+			//alert (document.form_new_item.loctype[i].id);
+			if (document.form_new_item.loctype[i].id == locType)
+				document.form_new_item.loctype[i].checked = true;
+			else
+				document.form_new_item.loctype[i].checked = false;
+		}
+		clearSuggestList();
+
+		//alert(document.form_new_item.loctype.length);
+		document.getElementById('locname').value = locationName;
+	}
+	function applyItem(itemName)
+	{
+		clearSuggestList();
+		document.getElementById('itemname').value = itemName;
+	}
+</script>
+<p>
+<form action='$this->request_processor' method='post' name='form_new_item'>
+	<input type='radio' id='st' name='loctype' value='staStations' checked>Станция&nbsp;
+	<input type='radio' id='ou' name='loctype' value='api_outposts'>Аутпост&nbsp;
+	<input type='radio' id='md' name='loctype' value='mapDenormalize'>mapDenormalize (Deliveries?)<br>
+	<label for='locname'>Локация:</label><br>
+	<input id='locname' name='locname' type='text' onKeyUp=\"locationAutoSuggest();\" onClick=\"clearSuggestList();\" size='100'><br>
+	<div id='locations_list' class='search_suggest'></div>
+	<label for='itemname'>Тип вещи:</label><br>
+	<input id='itemname' name='itemname' type='text' onKeyUp=\"itemAutoSuggest();\" onClick=\"clearSuggestList();\" size='100'><br>
+	<div id='items_list' class='search_suggest'></div>
+	<label for='monmin'>Минимальное количество:</label><br>
+	<input id='monmin' name='monmin' type='text' value='10'><br>
+	<label for='monnorm'>Нормальное количество:</label><br>
+	<input id='monnorm' name='monnorm' type='text' value='100'><br>
+	<input type='submit' name='submit_new_monitor' value='Добавить'>
+</form>
+<br>
+<div id='debug'></div>
+</p>
+			";
+//<div id='locations_list' class='search_suggest'></div>
+//<div id='items_list' class='search_suggest'></div>
+		}
+
 		function ShowLocationsList($page, $accountId)
 		{
 			$page->Body .= "
@@ -139,6 +346,8 @@ $sorter;";
 					<tr class='b-table-caption'>\n
 						<td>#</td>\n";
 			$page->Body .= $page->WriteSorter(array (
+				"solarSystemId" => "Solar System  Id",
+				"locationId" => "Location Id",
 				"locationName" => "Локация"));
 			$page->Body .= "
 					</tr>\n";
@@ -149,19 +358,34 @@ $sorter;";
 WHEN a.locationid BETWEEN 66000000 AND 66015131 THEN (
 	SELECT s.stationName
 	FROM staStations AS s
-	WHERE s.stationID = a.locationid -6000001
+	WHERE s.stationID = a.locationid - 6000001
 )
 WHEN a.locationid BETWEEN 66015132 AND 67999999 THEN (
 	SELECT c.stationname
 	FROM api_outposts AS c
-	WHERE c.stationid = a.locationid -6000000
+	WHERE c.stationid = a.locationid - 6000000
 )
 ELSE (
 	SELECT m.itemName
 	FROM mapDenormalize AS m
 	WHERE m.itemID = a.locationid
 )
-END AS locationName, a.locationId
+END AS locationName, 
+case
+when a.locationid between 66000000 and 66015131 then (
+	select ss.solarSystemID from staStations as ss
+	where ss.stationID = a.locationid -6000001
+)
+when a.locationid between 66015132 and 67999999 then (
+	select cc.solarSystemID from api_outposts as cc
+	where cc.stationid = a.locationid -6000000
+)
+else (
+	select mm.solarSystemID from mapDenormalize as mm
+	where mm.itemID = a.locationid
+)
+end as solarSystemID, 
+a.locationId
 FROM api_assets AS a
 where a.accountId = '$accountId'
 group by a.locationId
@@ -186,7 +410,9 @@ $sorter ;";//limit $pages->start, $pages->count
 					$row["locationName"] = "name empty, id = $row[locationId]";
 				$page->Body .= "
 						<tr class='$rowClass'>\n
-							<td>$rowIndex</td>\n
+							<td class='b-center'>$rowIndex</td>\n
+							<td class='b-center'>$row[solarSystemID]</td>\n
+							<td class='b-center'>$row[locationId]</td>\n
 							<td><a href='{$this->request_processor}&locationId=$row[locationId]'>$row[locationName]</a></td>\n
 						</tr>\n";
 			}
@@ -458,8 +684,8 @@ $sorter;";
 
 			$sorter = $page->GetSorter("locationName");
 			$query = 
-"select a.*, case
-
+"select a.*, 
+case
 when a.locationid between 66000000 and 66015131 then (
 	select s.stationName from staStations as s
 	where s.stationID = a.locationid -6000001
@@ -472,7 +698,22 @@ else (
 	select m.itemName from mapDenormalize as m
 	where m.itemID = a.locationid
 )
-end as locationName, invTypes.typeName, sum(api_assets.quantity) as quantity
+end as locationName, 
+case
+when a.locationid between 66000000 and 66015131 then (
+	select ss.solarSystemID from staStations as ss
+	where ss.stationID = a.locationid -6000001
+)
+when a.locationid between 66015132 and 67999999 then (
+	select cc.solarSystemID from api_outposts as cc
+	where cc.stationid = a.locationid -6000000
+)
+else (
+	select mm.solarSystemID from mapDenormalize as mm
+	where mm.itemID = a.locationid
+)
+end as solarSystemID, 
+invTypes.typeName, sum(api_assets.quantity) as quantity
 from api_assets_monitor as a
 left join invTypes on invTypes.typeID = a.typeId
 left join api_assets on (api_assets.typeId = a.typeId and api_assets.locationId = a.locationId and api_assets.accountId = '$accountId')
@@ -528,6 +769,7 @@ where a.accountId = '$accountId' group by a.typeId, a.locationId $sorter;";
 				</table>\n
 			";
 		}
+
 		function ProcessSubscribe($db, $accountId)
 		{
 			include_once "user.php";

@@ -5,14 +5,21 @@
 	// Init JsHttpRequest and specify the encoding. It's important!
 	$JsHttpRequest =& new JsHttpRequest("utf-8");
 	// Fetch request parameters.
-	if(isset($_REQUEST["function"]) && isset($_REQUEST["recordId"]))
+	if(isset($_REQUEST["function"]))
 	{
 		$function = $_REQUEST["function"];
-		$recordId = $_REQUEST["recordId"];
-		
-		//не рассматривать запросы для ошибочных id
-		if(preg_match("/^[\w\.]+$/", $recordId) != 1)
-			$function = null;
+		$recordId = null;
+		//echo "err";
+		if($function != "locations_by_name")
+		{
+			if(isset($_REQUEST["recordId"]))
+			{
+				$recordId = $_REQUEST["recordId"];
+				//не рассматривать запросы для ошибочных id
+				if(preg_match("/^[\w\.]+$/", $recordId) != 1)
+					$function = null;
+			}
+		}
 
 		if(isset($_SESSION["User"]))
 		{
@@ -181,6 +188,173 @@
 					"min"   => $min,
 					"norm"  => $norm
 				);
+			}
+			$limit = 10;
+			if($function == "locations_by_name")
+			{
+				$location = $_REQUEST["location"];
+
+				$bold_pattern = "/(^.*)($location)(.*$)/i";
+				$bold_replacement = "\${1}<b>\${2}</b>\${3}";
+
+				$db = OpenDB2();
+				$locations = "<p><b>Станции";
+
+				$query = sprintf("select count(*) as _count_ from staStations where stationName like '%%%s%%' order by stationName;", $db->real_escape_string($location));
+				$qr = $db->query($query);
+				$row = $qr->fetch_assoc();
+				$count = $row["_count_"];
+				$qr->close();
+
+				$query = sprintf("select * from staStations where stationName like '%%%s%%' order by stationName limit $limit;", $db->real_escape_string($location));
+				//echo $query;
+				if($qr = $db->query($query))
+				{
+					if($count > $limit)
+						$locations .= " (показаны $limit из {$count})</b>:<br>";
+					else if($qr->num_rows > 0)
+						$locations .= " ({$qr->num_rows})</b>:<br>";
+					else
+						$locations .= ": не найдены</b>";
+					$index = 0;
+					while($row = $qr->fetch_assoc())
+					{
+						$stationID = $row["stationID"];
+						$stationName = $row["stationName"];
+						$stationName2 = str_replace("'", "\'", $stationName);
+						$stationName = preg_replace($bold_pattern, $bold_replacement, $stationName);
+
+						$locations .= "$stationID <a href='#' onclick=\"applyLocation('$stationName2', 'st'); return false;\">$stationName</a><br>";
+						if($index++ > $limit)
+							break;
+					}
+					$qr->close();
+				}
+				$locations .= "</p>";
+
+				$locations .= "<p><b>Аутпосты";
+
+				$query = sprintf("select count(*) as _count_ from api_outposts where stationName like '%%%s%%' order by stationName;", $db->real_escape_string($location));
+				$qr = $db->query($query);
+				$row = $qr->fetch_assoc();
+				$count = $row["_count_"];
+				$qr->close();
+
+				$query = sprintf("select * from api_outposts where stationName like '%%%s%%' order by stationName limit $limit;", $db->real_escape_string($location));
+				//echo $query;
+				if($qr = $db->query($query))
+				{
+					if($count > $limit)
+						$locations .= " (показаны $limit из {$count})</b>:<br>";
+					else if($qr->num_rows > 0)
+						$locations .= " ({$qr->num_rows})</b>:<br>";
+					else
+						$locations .= ": не найдены</b>";
+					$index = 0;
+					while($row = $qr->fetch_assoc())
+					{
+						$stationID = $row["stationId"];
+						$stationName = $row["stationName"];
+						$stationName2 = str_replace("'", "\'", $stationName);
+						$stationName = preg_replace($bold_pattern, $bold_replacement, $stationName);
+
+						$locations .= "$stationID <a href='#' onclick=\"applyLocation('$stationName2', 'ou'); return false;\">$stationName</a><br>";
+						if($index++ > $limit)
+							break;
+					}
+					$qr->close();
+				}
+				$locations .= "</p>";
+
+				$locations .= "<p><b>mapDenormalize";
+
+				$query = sprintf("select count(*) as _count_ from mapDenormalize where itemName like '%%%s%%' order by itemName;", $db->real_escape_string($location));
+				$qr = $db->query($query);
+				$row = $qr->fetch_assoc();
+				$count = $row["_count_"];
+				$qr->close();
+
+				$query = sprintf("select * from mapDenormalize where itemName like '%%%s%%' order by itemName limit $limit;", $db->real_escape_string($location));
+				//echo $query;
+				if($qr = $db->query($query))
+				{
+					if($count > $limit)
+						$locations .= " (показаны $limit из {$count})</b>:<br>";
+					else if($qr->num_rows > 0)
+						$locations .= " ({$qr->num_rows})</b>:<br>";
+					else
+						$locations .= ": не найдены</b>";
+					$index = 0;
+					while($row = $qr->fetch_assoc())
+					{
+						$itemId = $row["itemID"];
+						$itemName = $row["itemName"];
+						$itemName2 = str_replace("'", "\'", $itemName);
+						$itemName = preg_replace($bold_pattern, $bold_replacement, $itemName);
+
+						//$locations .= "$stationName<br>";
+						$locations .= "$itemId <a href='#' onclick=\"applyLocation('$itemName2', 'md'); return false;\">$itemName</a><br>";
+						if($index++ > $limit)
+							break;
+					}
+					$qr->close();
+				}
+				$locations .= "</p>";
+
+				$db->close();
+				$GLOBALS['_RESULT'] = array(
+					"locations"   => $locations
+				);
+				//echo $locations;
+			}
+			if($function == "items_by_name")
+			{
+				$item = $_REQUEST["item"];
+
+				$bold_pattern = "/(^.*)($item)(.*$)/i";
+				$bold_replacement = "\${1}<b>\${2}</b>\${3}";
+
+				$db = OpenDB2();
+				$items = "<p><b>Вещи";
+
+				$query = sprintf("select count(*) as _count_ from invTypes where typeName like '%%%s%%' order by typeName;", $db->real_escape_string($item));
+				$qr = $db->query($query);
+				$row = $qr->fetch_assoc();
+				$count = $row["_count_"];
+				$qr->close();
+
+				$query = sprintf("select * from invTypes where typeName like '%%%s%%' order by typeName limit $limit;", $db->real_escape_string($item));
+				//echo $query;
+				if($qr = $db->query($query))
+				{
+					if($count > $limit)
+						$items .= " (показаны $limit из {$count})</b>:<br>";
+					else if($qr->num_rows > 0)
+						$items .= " ({$qr->num_rows})</b>:<br>";
+					else
+						$items .= ": не найдены</b>";
+
+					$index = 0;
+					while($row = $qr->fetch_assoc())
+					{
+						$typeId = $row["typeID"];
+						$typeName = $row["typeName"];
+						$typeName2 = str_replace("'", "\'", $typeName);
+						$typeName = preg_replace($bold_pattern, $bold_replacement, $typeName);
+
+						$items .= "$typeId <a href='#' onclick=\"applyItem('$typeName2'); return false;\">$typeName</a><br>";
+						if($index++ > $limit)
+							break;
+					}
+					$qr->close();
+				}
+				$items .= "</p>";
+
+				$db->close();
+				$GLOBALS['_RESULT'] = array(
+					"items"   => $items
+				);
+				//echo $items;
 			}
 		}
 		else

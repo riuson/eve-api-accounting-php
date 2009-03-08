@@ -1,6 +1,8 @@
 <?php
     class Api_MemberTracking
     {
+    	var $request_processor;
+    	var $accountId;
         function PreProcess($page)
 		{
 			//session_start();
@@ -15,14 +17,68 @@
 			$Api->characterId = $User->GetCharacterId();
 			$members = $Api->UpdateMemberTracking();
 
-			$accountId = $User->GetAccountId();
+			$this->accountId = $User->GetAccountId();
 
-			$request_processor = $_SERVER["PHP_SELF"] . "?mode=" . get_class($this);
+			$this->request_processor = $_SERVER["PHP_SELF"] . "?mode=" . get_class($this);
+			
+			$characterId = null;
+			if(isset($_GET["characterId"]))
+				$characterId = $_GET["characterId"];
 
+			if($characterId == null)
+				$this->ShowMembersList($page);
+			else
+				$this->ShowMemberInfo($page, $characterId);
+		}
+		function ShowMemberInfo($page, $characterId)
+		{
+			$db = OpenDB2();
+
+			$comedit = null;
+			if(isset($_POST["comedit"]))
+			{
+				$comedit = $_POST["comedit"];
+				$query = sprintf(
+					"update api_member_tracking set comments = '%s' where accountId = '{$this->accountId}' and characterId = '$characterId';",
+					$db->real_escape_string($comedit));
+				$db->query($query);
+			}
+
+			$query = "select * from api_member_tracking where accountId = '{$this->accountId}' and characterId = '$characterId';";
+			$qr = $db->query($query);
+			if($row = $qr->fetch_assoc())
+			{
+				$page->Body .= "<p>";
+				$page->Body .= "Имя: $row[name]<br>";
+				$page->Body .= "Дата приёма: $row[startDateTime]<br>";
+				$history = $row["joinlog"];
+				if($history == null || $history == "")
+				{
+					$history = "нет";
+				}
+				else
+				{
+					$history = str_replace("#out", " Вышел ", $history);
+					$history = str_replace("#joined", " Принят ", $history);
+				}
+				$page->Body .= "История приёма: $history<br>";
+				$page->Body .= "<form action='{$this->request_processor}&amp;characterId=$characterId' method='post'>
+<label for='comedit'>Комментарии</label>:<br>
+<textarea rows='7' cols='40' dir='ltr' id='comedit' name='comedit'>$row[comments]</textarea>
+<input type='submit' name='submit_comment' value='Применить'>
+</form>";
+				$page->Body .= "</p>";
+			}
+			$qr->close();
+
+			$db->close();
+		}
+		function ShowMembersList($page)
+		{
 			$db = OpenDB2();
 
 			//подсчёт числа подходящих строк
-			$qr = $db->query("select count(*) as _count_ from api_member_tracking where accountId = '$accountId';");
+			$qr = $db->query("select count(*) as _count_ from api_member_tracking where accountId = '{$this->accountId}';");
 			$row = $qr->fetch_assoc();
 			$recordsCount = $row["_count_"];
 			$qr->close();
@@ -47,12 +103,13 @@
 				"shipType" => "Корабль"
 				));
 			$page->Body .= "
+		<td></td>
     </tr>";
 
 			$sorter = $page->GetSorter("name");
 			//отдельно количество можно не запрашивать, т.к. есть свойство affected_rows
 			//нет. оказалось надо отдельно, т.к. число записей нужно для определения покаызываемой страницы
-			$query = "select * from api_member_tracking where accountId = '$accountId' $sorter limit $pages->start, $pages->count;";
+			$query = "select * from api_member_tracking where accountId = '{$this->accountId}' $sorter limit $pages->start, $pages->count;";
 			//echo $query;
 			$qr = $db->query($query);
 
@@ -74,6 +131,7 @@
 		<td>$row[logoffDateTime]</td>
 		<td>$row[location]</td>
 		<td>$row[shipType]</td>
+		<td><a href={$this->request_processor}&amp;characterId=$row[characterId]><img src='images/b_edit.png'></a></td>
 	</tr>
 ";
 				$rowIndex++;
@@ -84,7 +142,6 @@
 			$page->Body .= $pages->Write($recordsCount);
 			$qr->close();
 			$db->close();
-
 		}
 	}
 ?>

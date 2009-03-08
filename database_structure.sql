@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: localhost
--- Время создания: Мар 08 2009 г., 22:47
+-- Время создания: Мар 08 2009 г., 22:59
 -- Версия сервера: 5.0.67
 -- Версия PHP: 5.2.6-2ubuntu4.1
 
@@ -344,6 +344,19 @@ CREATE TABLE IF NOT EXISTS `api_kills_victims` (
 -- --------------------------------------------------------
 
 --
+-- Структура таблицы `api_log`
+--
+
+CREATE TABLE IF NOT EXISTS `api_log` (
+  `recordId` bigint(20) unsigned NOT NULL auto_increment,
+  `_date_` datetime NOT NULL default '0000-00-00 00:00:00',
+  `message` mediumtext collate utf8_unicode_ci NOT NULL,
+  PRIMARY KEY  (`recordId`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='лог событий' AUTO_INCREMENT=261 ;
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблицы `api_market_orders`
 --
 
@@ -573,19 +586,6 @@ CREATE TABLE IF NOT EXISTS `api_titles` (
 -- --------------------------------------------------------
 
 --
--- Структура таблицы `api_updater_log`
---
-
-CREATE TABLE IF NOT EXISTS `api_updater_log` (
-  `recordId` bigint(20) unsigned NOT NULL auto_increment,
-  `_date_` datetime NOT NULL default '0000-00-00 00:00:00',
-  `message` mediumtext collate utf8_unicode_ci NOT NULL,
-  PRIMARY KEY  (`recordId`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='лог автообновлений' AUTO_INCREMENT=261 ;
-
--- --------------------------------------------------------
-
---
 -- Структура таблицы `api_users`
 --
 
@@ -633,7 +633,7 @@ CREATE TABLE IF NOT EXISTS `api_visitors` (
   `login` varchar(255) collate utf8_unicode_ci NOT NULL,
   `uri` varchar(255) collate utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`recordId`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='список посетителей' AUTO_INCREMENT=3403 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='список посетителей' AUTO_INCREMENT=3410 ;
 
 -- --------------------------------------------------------
 

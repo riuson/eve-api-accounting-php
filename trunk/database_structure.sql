@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: localhost
--- Время создания: Мар 03 2009 г., 20:58
+-- Время создания: Мар 08 2009 г., 22:47
 -- Версия сервера: 5.0.67
 -- Версия PHP: 5.2.6-2ubuntu4.1
 
@@ -16,7 +16,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 /*!40101 SET NAMES utf8 */;
 
 --
--- База данных: `sleephost_ea`
+-- База данных: `tesdb_eveapi_acc`
 --
 
 -- --------------------------------------------------------
@@ -105,19 +105,6 @@ CREATE TABLE IF NOT EXISTS `api_cache` (
   PRIMARY KEY  (`recordId`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
--- --------------------------------------------------------
-
---
--- Дублирующая структура для представления `api_cache_last`
---
-CREATE TABLE IF NOT EXISTS `api_cache_last` (
-`recordId` char(40)
-,`accountId` char(40)
-,`uri` varchar(200)
-,`cached` datetime
-,`cachedUntil` datetime
-,`cachedValue` mediumtext
-);
 -- --------------------------------------------------------
 
 --
@@ -357,19 +344,6 @@ CREATE TABLE IF NOT EXISTS `api_kills_victims` (
 -- --------------------------------------------------------
 
 --
--- Структура таблицы `api_log`
---
-
-CREATE TABLE IF NOT EXISTS `api_log` (
-  `recordId` bigint(20) unsigned NOT NULL auto_increment,
-  `_date_` datetime NOT NULL default '0000-00-00 00:00:00',
-  `message` mediumtext collate utf8_unicode_ci NOT NULL,
-  PRIMARY KEY  (`recordId`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='лог событий' AUTO_INCREMENT=8 ;
-
--- --------------------------------------------------------
-
---
 -- Структура таблицы `api_market_orders`
 --
 
@@ -423,7 +397,6 @@ CREATE TABLE IF NOT EXISTS `api_member_security` (
 --
 
 CREATE TABLE IF NOT EXISTS `api_member_tracking` (
-  `recordId` varchar(40) collate utf8_unicode_ci NOT NULL,
   `accountId` varchar(40) collate utf8_unicode_ci NOT NULL,
   `characterId` bigint(20) NOT NULL,
   `name` varchar(255) collate utf8_unicode_ci NOT NULL,
@@ -439,8 +412,10 @@ CREATE TABLE IF NOT EXISTS `api_member_tracking` (
   `shipType` varchar(255) collate utf8_unicode_ci NOT NULL,
   `roles` bigint(20) NOT NULL,
   `grantableRoles` bigint(20) NOT NULL,
-  `updated` datetime NOT NULL,
-  PRIMARY KEY  (`recordId`),
+  `updated` tinyint(4) NOT NULL default '1' COMMENT 'флаг обновления',
+  `incorp` tinyint(4) NOT NULL default '1' COMMENT '0 - не в корпе, 1 - в корпе',
+  `joinlog` mediumtext collate utf8_unicode_ci NOT NULL COMMENT 'лог приёма и выхода из корпы',
+  `comments` mediumtext collate utf8_unicode_ci NOT NULL COMMENT 'комментарии',
   UNIQUE KEY `accountId` (`accountId`,`characterId`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='member tracking';
 
@@ -598,6 +573,19 @@ CREATE TABLE IF NOT EXISTS `api_titles` (
 -- --------------------------------------------------------
 
 --
+-- Структура таблицы `api_updater_log`
+--
+
+CREATE TABLE IF NOT EXISTS `api_updater_log` (
+  `recordId` bigint(20) unsigned NOT NULL auto_increment,
+  `_date_` datetime NOT NULL default '0000-00-00 00:00:00',
+  `message` mediumtext collate utf8_unicode_ci NOT NULL,
+  PRIMARY KEY  (`recordId`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='лог автообновлений' AUTO_INCREMENT=261 ;
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблицы `api_users`
 --
 
@@ -629,7 +617,7 @@ CREATE TABLE IF NOT EXISTS `api_users_reserve` (
   `characterId` bigint(20) NOT NULL,
   `valid` tinyint(1) NOT NULL default '1',
   PRIMARY KEY  (`recordId`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=4 ;
 
 -- --------------------------------------------------------
 
@@ -645,7 +633,7 @@ CREATE TABLE IF NOT EXISTS `api_visitors` (
   `login` varchar(255) collate utf8_unicode_ci NOT NULL,
   `uri` varchar(255) collate utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`recordId`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='список посетителей' AUTO_INCREMENT=3335 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='список посетителей' AUTO_INCREMENT=3403 ;
 
 -- --------------------------------------------------------
 
@@ -700,12 +688,3 @@ CREATE TABLE IF NOT EXISTS `api_wallet_transactions` (
   PRIMARY KEY  (`recordId`),
   UNIQUE KEY `unique_record` (`accountId`,`transId`,`accountKey`,`_date_`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Структура для представления `api_cache_last`
---
-DROP TABLE IF EXISTS `api_cache_last`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `api_cache_last` AS select `api_cache`.`recordId` AS `recordId`,`api_cache`.`accountId` AS `accountId`,`api_cache`.`uri` AS `uri`,`api_cache`.`cached` AS `cached`,`api_cache`.`cachedUntil` AS `cachedUntil`,`api_cache`.`cachedValue` AS `cachedValue` from `api_cache` order by `api_cache`.`cached` desc limit 20;

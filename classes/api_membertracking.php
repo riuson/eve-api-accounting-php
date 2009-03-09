@@ -121,9 +121,13 @@
 				else
 					$rowClass = "b-row-odd";
 
+				if($row["incorp"] == true)
+					$colorInCorp = "bgcolor='green'";
+				else
+					$colorInCorp = "";
 				$page->Body .= "
 	<tr class='$rowClass'>
-		<td>$rowIndex</td>
+		<td $colorInCorp>$rowIndex</td>
 		<td>$row[name]</td>
 		<td>$row[startDateTime]</td>
 		<td>$row[base]</td>

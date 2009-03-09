@@ -1392,7 +1392,6 @@
 							$node->getAttribute("shipTypeID"), mysql_escape_string($node->getAttribute("shipType")),
 							$node->getAttribute("roles"), $node->getAttribute("grantableRoles")
 							);
-						$query = str_replace("553915838", "553915839", $query);
 						$db->query($query);
 					}
 					//после обновления флаг updated ставится в 1

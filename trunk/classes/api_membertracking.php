@@ -40,7 +40,7 @@
 				$comedit = $_POST["comedit"];
 				$query = sprintf(
 					"update api_member_tracking set comments = '%s' where accountId = '{$this->accountId}' and characterId = '$characterId';",
-					$db->real_escape_string($comedit));
+					$db->real_escape_string(base64_encode($comedit)));
 				$db->query($query);
 			}
 
@@ -62,9 +62,10 @@
 					$history = str_replace("#joined", " Принят ", $history);
 				}
 				$page->Body .= "История приёма: $history<br>";
+				$comments = base64_decode($row["comments"]);
 				$page->Body .= "<form action='{$this->request_processor}&amp;characterId=$characterId' method='post'>
 <label for='comedit'>Комментарии</label>:<br>
-<textarea rows='7' cols='40' dir='ltr' id='comedit' name='comedit'>$row[comments]</textarea>
+<textarea rows='7' cols='40' dir='ltr' id='comedit' name='comedit'>$comments</textarea>
 <input type='submit' name='submit_comment' value='Применить'>
 </form>";
 				$page->Body .= "</p>";

@@ -49,7 +49,11 @@
 						$installedInSolarSystemId = null;
 				}
 				if($installedInSolarSystemId == null)
+				{
 					$this->ShowContainersList($page);
+					$page->Body .= "<br>";
+					$this->ShowJobsProgress($page);
+				}
 				if($installedInSolarSystemId != null)
 					$this->ShowJobsInSolarSystem($page, $installedInSolarSystemId);
 			}
@@ -92,7 +96,33 @@ GROUP BY jobs.installedInSolarSystemId ;";
 		}
 		function ShowJobsInSolarSystem($page, $installedInSolarSystemId)
 		{
-			$page->Body .= "<p>Список работ</p>";
+			if(isset($_REQUEST["list"]))
+				$list = $_REQUEST["list"];
+			else
+				$list = "all";
+			$page->Body .= "<p>Список работ: ";
+
+			if($list == "all")
+				$page->Body .= "<a href='{$this->request_processor}&amp;installedInSolarSystemId={$installedInSolarSystemId}&amp;list=all'><b>всех</b></a>, ";
+			else
+				$page->Body .= "<a href='{$this->request_processor}&amp;installedInSolarSystemId={$installedInSolarSystemId}&amp;list=all'>всех</a>, ";
+
+			if($list == "completed")
+				$page->Body .= "<a href='{$this->request_processor}&amp;installedInSolarSystemId={$installedInSolarSystemId}&amp;list=completed'><b>завершённых</b></a>, ";
+			else
+				$page->Body .= "<a href='{$this->request_processor}&amp;installedInSolarSystemId={$installedInSolarSystemId}&amp;list=completed'>завершённых</a>, ";
+
+			if($list == "progress")
+				$page->Body .= "<a href='{$this->request_processor}&amp;installedInSolarSystemId={$installedInSolarSystemId}&amp;list=progress'><b>производящихся</b></a>, ";
+			else
+				$page->Body .= "<a href='{$this->request_processor}&amp;installedInSolarSystemId={$installedInSolarSystemId}&amp;list=progress'>производящихся</a>, ";
+
+			if($list == "failed")
+				$page->Body .= "<a href='{$this->request_processor}&amp;installedInSolarSystemId={$installedInSolarSystemId}&amp;list=failed'><b>неудавшихся</b></a>";
+			else
+				$page->Body .= "<a href='{$this->request_processor}&amp;installedInSolarSystemId={$installedInSolarSystemId}&amp;list=failed'>неудавшихся</a>";
+
+			$page->Body .= "</p>";
 			$page->Body .= "<table class='b-border b-widthfull' cellspacing='1' cellpadding='1'>";
 			$page->Body .= "<tr class='b-table-caption'>\n
 						<td>#</td>\n";
@@ -162,13 +192,6 @@ END AS containerName, " .
 				$index = 0;
 				while($row = $qr->fetch_assoc())
 				{
-					//if($row["containerName"] == null)
-					//	$row["containerName"] = "Неизвестно где, containerId = $row[containerId]";
-					if(($index % 2) == 1)
-						$rowClass = "b-row-even";
-					else
-						$rowClass = "b-row-odd";
-					$index++;
 
 					if($row["installedItemCopy"] == 0)
 						$installedItemCopy = "orig";
@@ -184,6 +207,31 @@ END AS containerName, " .
 						$status = "failed";
 					if($row["completed"] == 0 && $row["completedStatus"] == 1)
 						$status = "??";
+
+					if($list == "progress" && $status != "progress")
+					{
+						continue;
+					}
+					else
+					{
+						if($list == "completed" && $status != "completed")
+						{
+							continue;
+						}
+						else
+						{
+							if($list == "failed" && $status != "failed")
+							{
+								continue;
+							}
+						}
+					}
+					if(($index % 2) == 1)
+						$rowClass = "b-row-even";
+					else
+						$rowClass = "b-row-odd";
+					$index++;
+
 					$page->Body .= "<tr class='$rowClass'>" .
 						//"<td><a href='{$this->request_processor}&amp;installedInSolarSystemId=$installedInSolarSystemId&amp;jobId=$row[jobId]'>$row[jobId]</a></td>" .
 						"<td>$index</td>" .
@@ -201,6 +249,244 @@ END AS containerName, " .
 						"<td>$row[endProductionTime]</td>" .
 						"<td>$row[pauseProductionTime]</td>" .
 						"</tr>";
+				}
+				$page->Body .= "</table>";
+				$qr->close();
+			}
+			$db->close();
+		}
+		function ShowJobsProgress($page)
+		{
+			$page->Body .= "<p>Список производящихся работ</p>";
+			$page->Body .= "<table class='b-border b-widthfull' cellspacing='1' cellpadding='1'>";
+			$page->Body .= "<tr class='b-table-caption'>\n
+						<td>#</td>\n";
+			$page->Body .= $page->WriteSorter(array (
+				"jobId" => "Id",
+				"installerName" => "Установщик",
+				"outputTypeName" => "Выход",
+				"containerTypeName" => "Место производства",
+				"containerName" => "Место производства",
+				"installedItemCopy" => "Оригинал",
+				"completed" => "Завершено",
+				"installTime" => "Установка",
+				"beginProductionTime" => "Начало",
+				"endProductionTime" => "Конец",
+				"pauseProductionTime" => "Простой"
+				));
+			$page->Body .= "</tr>";
+			$sorter = $page->GetSorter("jobId");
+
+			$query = "select
+			CASE
+WHEN jobs.containerId
+BETWEEN 66000000
+AND 66015131
+THEN (
+
+SELECT s.stationName
+FROM staStations AS s
+WHERE s.stationID = jobs.containerId -6000001
+)
+WHEN jobs.containerId
+BETWEEN 66015132
+AND 67999999
+THEN (
+
+SELECT c.stationname
+FROM api_outposts AS c
+WHERE c.stationid = jobs.containerId -6000000
+)
+ELSE (
+
+SELECT m.itemName
+FROM mapDenormalize AS m
+WHERE m.itemID = jobs.containerId
+)
+END AS containerName, " . 
+			 	"jobs.*, " .
+			 	"members.name as installerName, " .
+			 	"invTypes.typeName as outputTypeName, " .
+			 	"invTypes2.typeName as containerTypeName, " .
+			 	"invFlags1.flagName as installedItemFlagName, " .
+			 	"invFlags2.flagName as outputFlagName " .
+
+				"from api_industry_jobs as jobs " . 
+				"left join api_member_tracking as members on members.characterId = jobs.installerId " .
+				"left join invTypes on invTypes.typeID = jobs.outputTypeId " .
+				"left join invTypes as invTypes2 on invTypes2.typeID = jobs.containerTypeId " .
+				"left join invFlags as invFlags1 on invFlags1.flagID = jobs.installedItemFlag " .
+				"left join invFlags as invFlags2 on invFlags2.flagID = jobs.outputFlag " .
+				"where jobs.accountId = '{$this->accountId}' and members.accountId = '{$this->accountId}' ".
+				";";
+			//echo $query;
+			$db = OpenDB2();
+			$qr = $db->query($query);
+			if($qr)
+			{
+				$index = 0;
+				while($row = $qr->fetch_assoc())
+				{
+					//if($row["containerName"] == null)
+					//	$row["containerName"] = "Неизвестно где, containerId = $row[containerId]";
+					if($row["installedItemCopy"] == 0)
+						$installedItemCopy = "orig";
+					else
+						$installedItemCopy = "copy";
+
+					$status = "?";
+					if($row["completed"] == 0 && $row["completedStatus"] == 0)
+						$status = "progress";
+					if($row["completed"] == 1 && $row["completedStatus"] == 1)
+						$status = "completed";
+					if($row["completed"] == 1 && $row["completedStatus"] == 0)
+						$status = "failed";
+					if($row["completed"] == 0 && $row["completedStatus"] == 1)
+						$status = "??";
+					if($status != "completed")
+					{
+						if(($index % 2) == 1)
+							$rowClass = "b-row-even";
+						else
+							$rowClass = "b-row-odd";
+						$index++;
+
+						$page->Body .= "<tr class='$rowClass'>" .
+							//"<td><a href='{$this->request_processor}&amp;installedInSolarSystemId=$installedInSolarSystemId&amp;jobId=$row[jobId]'>$row[jobId]</a></td>" .
+							"<td>$index</td>" .
+							"<td>$row[jobId]</td>" .
+							"<td>$row[installerName]</td>" .
+							"<td>$row[outputTypeName]</td>" .
+							"<td>$row[containerTypeName]</td>" .
+							"<td>$row[containerName]</td>" .
+							"<td>$installedItemCopy</td>" .
+							"<td>$status</td>" .
+							//"<td>$row[installedItemFlagName]</td>" .
+							//"<td>$row[outputFlagName]</td>" .
+							"<td>$row[installTime]</td>" .
+							"<td>$row[beginProductionTime]</td>" .
+							"<td>$row[endProductionTime]</td>" .
+							"<td>$row[pauseProductionTime]</td>" .
+							"</tr>";
+					}
+				}
+				$page->Body .= "</table>";
+				$qr->close();
+			}
+			$db->close();
+		}
+		function ShowJobsCompleted($page)
+		{
+			$page->Body .= "<p>Список завершённых работ:</p>";
+			$page->Body .= "<table class='b-border b-widthfull' cellspacing='1' cellpadding='1'>";
+			$page->Body .= "<tr class='b-table-caption'>\n
+						<td>#</td>\n";
+			$page->Body .= $page->WriteSorter(array (
+				"jobId" => "Id",
+				"installerName" => "Установщик",
+				"outputTypeName" => "Выход",
+				"containerTypeName" => "Место производства",
+				"containerName" => "Место производства",
+				"installedItemCopy" => "Оригинал",
+				"completed" => "Завершено",
+				"installTime" => "Установка",
+				"beginProductionTime" => "Начало",
+				"endProductionTime" => "Конец",
+				"pauseProductionTime" => "Простой"
+				));
+			$page->Body .= "</tr>";
+			$sorter = $page->GetSorter("jobId");
+
+			$query = "select
+			CASE
+WHEN jobs.containerId
+BETWEEN 66000000
+AND 66015131
+THEN (
+
+SELECT s.stationName
+FROM staStations AS s
+WHERE s.stationID = jobs.containerId -6000001
+)
+WHEN jobs.containerId
+BETWEEN 66015132
+AND 67999999
+THEN (
+
+SELECT c.stationname
+FROM api_outposts AS c
+WHERE c.stationid = jobs.containerId -6000000
+)
+ELSE (
+
+SELECT m.itemName
+FROM mapDenormalize AS m
+WHERE m.itemID = jobs.containerId
+)
+END AS containerName, " . 
+			 	"jobs.*, " .
+			 	"members.name as installerName, " .
+			 	"invTypes.typeName as outputTypeName, " .
+			 	"invTypes2.typeName as containerTypeName, " .
+			 	"invFlags1.flagName as installedItemFlagName, " .
+			 	"invFlags2.flagName as outputFlagName " .
+
+				"from api_industry_jobs as jobs " . 
+				"left join api_member_tracking as members on members.characterId = jobs.installerId " .
+				"left join invTypes on invTypes.typeID = jobs.outputTypeId " .
+				"left join invTypes as invTypes2 on invTypes2.typeID = jobs.containerTypeId " .
+				"left join invFlags as invFlags1 on invFlags1.flagID = jobs.installedItemFlag " .
+				"left join invFlags as invFlags2 on invFlags2.flagID = jobs.outputFlag " .
+				"where jobs.accountId = '{$this->accountId}' and members.accountId = '{$this->accountId}' ".
+				";";
+			//echo $query;
+			$db = OpenDB2();
+			$qr = $db->query($query);
+			if($qr)
+			{
+				$index = 0;
+				while($row = $qr->fetch_assoc())
+				{
+					if($row["installedItemCopy"] == 0)
+						$installedItemCopy = "orig";
+					else
+						$installedItemCopy = "copy";
+
+					$status = "?";
+					if($row["completed"] == 0 && $row["completedStatus"] == 0)
+						$status = "progress";
+					if($row["completed"] == 1 && $row["completedStatus"] == 1)
+						$status = "completed";
+					if($row["completed"] == 1 && $row["completedStatus"] == 0)
+						$status = "failed";
+					if($row["completed"] == 0 && $row["completedStatus"] == 1)
+						$status = "??";
+					if($status == "completed")
+					{
+						if(($index % 2) == 1)
+							$rowClass = "b-row-even";
+						else
+							$rowClass = "b-row-odd";
+						$index++;
+
+						$page->Body .= "<tr class='$rowClass'>" .
+							//"<td><a href='{$this->request_processor}&amp;installedInSolarSystemId=$installedInSolarSystemId&amp;jobId=$row[jobId]'>$row[jobId]</a></td>" .
+							"<td>$index</td>" .
+							"<td>$row[jobId]</td>" .
+							"<td>$row[installerName]</td>" .
+							"<td>$row[outputTypeName]</td>" .
+							"<td>$row[containerTypeName]</td>" .
+							"<td>$row[containerName]</td>" .
+							"<td>$installedItemCopy</td>" .
+							"<td>$status</td>" .
+							//"<td>$row[installedItemFlagName]</td>" .
+							//"<td>$row[outputFlagName]</td>" .
+							"<td>$row[installTime]</td>" .
+							"<td>$row[beginProductionTime]</td>" .
+							"<td>$row[endProductionTime]</td>" .
+							"<td>$row[pauseProductionTime]</td>" .
+							"</tr>";
+					}
 				}
 				$page->Body .= "</table>";
 				$qr->close();

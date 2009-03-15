@@ -137,9 +137,9 @@
 
 			$page->Body = "";
 
-			if($viewmonitor == null)
-				$page->Body = "<a href='{$this->request_processor}&amp;viewmonitor'>Просмотр таблицы слежения за запасами</a><br>";
-			if($newmonitor == null)
+			//if($viewmonitor == null)
+				$page->Body .= "<a href='{$this->request_processor}&amp;viewmonitor'>Просмотр таблицы слежения за запасами</a><br>";
+			//if($newmonitor == null)
 				$page->Body .= "<a href='{$this->request_processor}&amp;newmonitor'>Добавление нового объекта слежения</a><br>";
 
 			// добавление нового монитора
@@ -744,19 +744,21 @@ where a.accountId = '$accountId' group by a.typeId, a.locationId $sorter;";
 				//подсветка
 				$highlight = "";
 				if($quantity < $quantityNormal)
-					$highlight = "bgcolor='orange'";
+					$highlight = "bgcolor='#786A6A'";
 				if($quantity < $quantityMinimum)
-					$highlight = "bgcolor='red'";
+					$highlight = "bgcolor='#330000'";
 				
-
+				$quantityMinimum = $page->FormatNum($quantityMinimum, 0);
+				$quantityNormal = $page->FormatNum($quantityNormal, 0);
+				$quantity = $page->FormatNum($quantity, 0);
 				$page->Body .= "
 						<tr class='$rowClass'>\n
 							<td>{$this->rowIndex}</td>\n
 							<td>$row[locationName]</td>
 							<td>$row[typeName]</td>
-							<td class='b-right' $highlight>$row[quantity]</td>
-							<td class='b-right' id='min_$row[recordId]'>$row[quantityMinimum]</td>
-							<td class='b-right' id='norm_$row[recordId]'>$row[quantityNormal]</td>
+							<td class='b-right' $highlight>$quantity</td>
+							<td class='b-right' id='min_$row[recordId]'>$quantityMinimum</td>
+							<td class='b-right' id='norm_$row[recordId]'>$quantityNormal</td>
 							<!--//
 							<td class='b-center'><a href='{$this->request_processor}&editmonitor=$row[recordId]'><img src='images/b_edit.png'></a> <a href='{$this->request_processor}&viewmonitor&delmonitor=$row[recordId]'><img src='images/b_drop.png'></a></td>
 							//-->

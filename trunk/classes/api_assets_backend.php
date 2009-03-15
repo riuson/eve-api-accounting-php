@@ -20,7 +20,7 @@
 					$function = null;
 			}
 		}
-
+//print_r($_REQUEST);
 		if(isset($_SESSION["User"]))
 		{
 			$User = $_SESSION["User"];
@@ -33,6 +33,12 @@
 			{
 				$min = $_REQUEST["min"];
 				$norm = $_REQUEST["norm"];
+				//$min = str_replace("&nbsp;", "", $min);
+				$min = preg_replace("/[^\d]/", "", $min);
+				$norm = preg_replace("/[^\d]/", "", $norm);
+				//$norm = str_replace("&nbsp;", "", $norm);
+				//echo "<pre>$min</pre>";
+				//echo "<pre>$norm</pre>";
 
 				if(preg_match("/^[\d]{1,9}$/", $min) == 1 && preg_match("/^[\d]{1,9}$/", $norm) == 1)
 				{
@@ -57,6 +63,12 @@
 						$qr->close();
 					}
 					$db->close();
+
+					$min = number_format($min, 0, ",", " ");
+					$min = str_replace(" ", "&nbsp;", $min);
+					$norm = number_format($norm, 0, ",", " ");
+					$norm = str_replace(" ", "&nbsp;", $norm);
+
 					$GLOBALS['_RESULT'] = array(
 						"recordId" => $_REQUEST["recordId"],
 						"min"   => $min,
@@ -87,6 +99,8 @@
 			{
 				$min = $_REQUEST["min"];
 				$norm = $_REQUEST["norm"];
+				$min = preg_replace("/[^\d]/", "", $min);
+				$norm = preg_replace("/[^\d]/", "", $norm);
 
 				if(preg_match("/^[\d]{1,9}$/", $min) == 1 && preg_match("/^[\d]{1,9}$/", $norm) == 1)
 				{
@@ -183,6 +197,12 @@
 
 
 				$db->close();
+
+				$min = number_format($min, 0, ",", " ");
+				$min = str_replace(" ", "&nbsp;", $min);
+				$norm = number_format($norm, 0, ",", " ");
+				$norm = str_replace(" ", "&nbsp;", $norm);
+
 				$GLOBALS['_RESULT'] = array(
 					"recordId" => $_REQUEST["recordId"],
 					"min"   => $min,
@@ -307,6 +327,7 @@
 				);
 				//echo $locations;
 			}
+			$limit = 30;
 			if($function == "items_by_name")
 			{
 				$item = $_REQUEST["item"];

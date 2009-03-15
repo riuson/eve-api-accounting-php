@@ -69,7 +69,7 @@
 								$message .= "Пользователь не зарегистрирован";
 				}
 				$page->Body = "
-				 <form method='post' action='$request_processor'>\n
+				 <form method='post' action='$request_processor' id='login_form'>\n
 						<table class='b-login b-border'>\n
 							<tr>\n
 								<td>Логин:</td>\n

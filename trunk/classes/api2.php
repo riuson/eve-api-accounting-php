@@ -690,7 +690,7 @@
 					//if($bar != null) $bar->initialize($nodes->length);
 
 					$updateFlag = 1;
-					$statement = $db->prepare("insert into api_sovereignty values (?, ?, ?, ?, ?, ?, ?);");
+					$statement = $db->prepare("replace into api_sovereignty values (?, ?, ?, ?, ?, ?, ?);");
 					$statement->bind_param("dddddsd", $solarSystemId, $allianceId, $constellationSovereignty, $sovereigntyLevel, $factionId, $solarSystemName, $updateFlag);
 
 					foreach($nodes as $node)
@@ -824,7 +824,7 @@
 					//if($bar != null) $bar->initialize($nodes->length);
 
 					$updateFlag = 1;
-					$statementRef = $dblink->prepare("insert into api_reftypes values (?, ?, ?);");
+					$statementRef = $dblink->prepare("replace into api_reftypes values (?, ?, ?);");
 					$statementRef->bind_param("dsd", $refTypeId, $refTypeName, $updateFlag);
 
 					foreach($refNodes as $refNode)

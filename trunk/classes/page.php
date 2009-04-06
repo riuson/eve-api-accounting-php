@@ -302,8 +302,8 @@
 
 			$topMenuItems = array(
 				"Index" => "Начало",
-				"Information" => "Информация"//,
-				//"Visitors" => "Visitors"
+				"Information" => "Информация",
+				"Visitors" => "Посетители"
 			);
 
 			$login = $this->User->parameters["login"];

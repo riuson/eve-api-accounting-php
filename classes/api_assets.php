@@ -686,6 +686,23 @@ $sorter;";
 					</tr>\n";
 
 			$sorter = $page->GetSorter("locationName");
+
+
+			if(preg_match("/locationName/", $sorter) > 0)
+			{
+				$pattern = "/(^.*)(locationName)(.*$)/i";//"/(\w+) (\d+), (\d+)/i";
+				$replacement = "\${1}locationName,typeName\$3";
+				$sorter = preg_replace($pattern, $replacement, $sorter);
+			}
+			else
+			{
+				if(preg_match("/typeName/", $sorter) > 0)
+				{
+					$pattern = "/(^.*)(typeName)(.*$)/i";//"/(\w+) (\d+), (\d+)/i";
+					$replacement = "\${1}typeName,quantity\$3";
+					$sorter = preg_replace($pattern, $replacement, $sorter);
+				}
+			}
 			$query = 
 "select a.*, 
 case
@@ -744,9 +761,9 @@ where a.accountId = '$accountId' group by a.typeId, a.locationId $sorter;";
 				//подсветка
 				$highlight = "";
 				if($quantity < $quantityNormal)
-					$highlight = "bgcolor='#786A6A'";
+					$highlight = "bgcolor='#222299'";
 				if($quantity < $quantityMinimum)
-					$highlight = "bgcolor='#330000'";
+					$highlight = "bgcolor='#991111'";
 				
 				$quantityMinimum = $page->FormatNum($quantityMinimum, 0);
 				$quantityNormal = $page->FormatNum($quantityNormal, 0);

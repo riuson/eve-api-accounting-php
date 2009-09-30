@@ -356,8 +356,13 @@ $sorter;";
 					</tr>\n";
 
 			$sorter = $page->GetSorter("locationName");
-
+//60 014 940 ... 60 014 952 уменьшаем не на 6 000 001, а на 6 000 000, как обходной путь смещения locationId в PR-8CA (60 014 946 выдаётся в corpAssets как 66 014 946, вместо предполагаемого 66 014 947)
 			$query = "SELECT CASE
+WHEN a.locationid BETWEEN 66014940 AND 66014952 THEN (
+	SELECT s.stationName
+	FROM staStations AS s
+	WHERE s.stationID = a.locationid - 6000000
+)
 WHEN a.locationid BETWEEN 66000000 AND 66015131 THEN (
 	SELECT s.stationName
 	FROM staStations AS s
@@ -375,6 +380,10 @@ ELSE (
 )
 END AS locationName, 
 case
+when a.locationid between 66014940 and 66014952 then (
+	select ss.solarSystemID from staStations as ss
+	where ss.stationID = a.locationid -6000000
+)
 when a.locationid between 66000000 and 66015131 then (
 	select ss.solarSystemID from staStations as ss
 	where ss.stationID = a.locationid -6000001
@@ -706,6 +715,10 @@ $sorter;";
 			$query = 
 "select a.*, 
 case
+when a.locationid between 66014940 and 66014952 then (
+	select s.stationName from staStations as s
+	where s.stationID = a.locationid -6000000
+)
 when a.locationid between 66000000 and 66015131 then (
 	select s.stationName from staStations as s
 	where s.stationID = a.locationid -6000001
@@ -720,6 +733,10 @@ else (
 )
 end as locationName, 
 case
+when a.locationid between 66014940 and 66014952 then (
+	select ss.solarSystemID from staStations as ss
+	where ss.stationID = a.locationid -6000000
+)
 when a.locationid between 66000000 and 66015131 then (
 	select ss.solarSystemID from staStations as ss
 	where ss.stationID = a.locationid -6000001
@@ -813,6 +830,10 @@ where a.accountId = '$accountId' group by a.typeId, a.locationId $sorter;";
 				$query = 
 "select a.*, case
 
+when a.locationid between 66014940 and 66014952 then (
+	select s.stationName from staStations as s
+	where s.stationID = a.locationid -6000000
+)
 when a.locationid between 66000000 and 66015131 then (
 	select s.stationName from staStations as s
 	where s.stationID = a.locationid -6000001

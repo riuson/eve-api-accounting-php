@@ -84,7 +84,12 @@
 					$qr = $db->query($query);
 					if($row = $qr->fetch_assoc())
 					{
-						$locId = $row["stationID"] + 6000001;
+						if($row["stationID"] >= 60000000 && $row["stationID"] <= 61000000)
+							$locId = $row["stationID"];
+						if($row["stationID"] >= 59999999 && $row["stationID"] <= 60999998)
+							$locId = $row["stationID"] + 6000001;
+						if($row["stationID"] >= 60014940 && $row["stationID"] <= 60014952)
+							$locId = $row["stationID"] + 6000000;
 					}
 					$qr->close();
 				}
@@ -94,7 +99,12 @@
 					$qr = $db->query($query);
 					if($row = $qr->fetch_assoc())
 					{
-						$locId = $row["stationId"] + 6000000;
+						if($row["stationID"] >= 61000000 && $row["stationID"] <= 61999999)
+							$locId = $row["stationID"] + 6000000;
+						if($row["stationID"] >= 60014861 && $row["stationID"] <= 60014928)
+							$locId = $row["stationID"] + 6000000;
+						if($row["stationID"] >= 61000000)
+							$locId = $row["stationId"];
 					}
 					$qr->close();
 				}
@@ -357,6 +367,85 @@ $sorter;";
 
 			$sorter = $page->GetSorter("locationName");
 //60 014 940 ... 60 014 952 уменьшаем не на 6 000 001, а на 6 000 000, как обходной путь смещения locationId в PR-8CA (60 014 946 выдаётся в corpAssets как 66 014 946, вместо предполагаемого 66 014 947)
+
+			$query = "SELECT case
+WHEN a.locationid BETWEEN 66014940 AND 66014952 THEN (
+	SELECT s.stationName
+	FROM staStations AS s	WHERE s.stationID = a.locationid - 6000000
+)
+when a.locationID BETWEEN 66000000 AND 66999999 then (
+	SELECT s.stationName
+	FROM staStations AS s
+	WHERE s.stationID = a.locationID - 6000001
+)
+when a.locationID BETWEEN 67000000 AND 67999999 then (
+	SELECT c.stationName
+	FROM api_outposts AS c
+	WHERE c.stationID = a.locationID - 6000000
+)
+when a.locationID BETWEEN 60014861 AND 60014928 then (
+	SELECT c.stationName
+	FROM api_outposts AS c
+	WHERE c.stationID = a.locationID
+)
+when a.locationID BETWEEN 60000000 AND 61000000 then (
+	SELECT s.stationName
+	FROM staStations AS s
+	WHERE s.stationID = a.locationID
+)
+when a.locationID >= 61000000 then (
+	SELECT c.stationName
+	FROM api_outposts AS c
+	WHERE c.stationID = a.locationID
+)
+else (
+	SELECT m.itemName
+	FROM mapDenormalize AS m
+	WHERE m.itemID = a.locationID
+) end AS locationName,
+case
+WHEN a.locationid BETWEEN 66014940 AND 66014952 THEN (
+	SELECT ss.solarSystemID
+	FROM staStations AS ss
+	WHERE ss.stationID = a.locationID - 6000000
+)
+when a.locationID BETWEEN 66000000 AND 66999999 then (
+	SELECT ss.solarSystemID
+	FROM staStations AS ss
+	WHERE ss.stationID = a.locationID - 6000001
+)
+when a.locationID BETWEEN 67000000 AND 67999999 then (
+	SELECT cc.solarSystemID
+	FROM api_outposts AS cc
+	WHERE cc.stationID = a.locationID - 6000000
+)
+when a.locationID BETWEEN 60014861 AND 60014928 then (
+	SELECT cc.solarSystemID
+	FROM api_outposts AS cc
+	WHERE cc.stationID = a.locationID
+)
+when a.locationID BETWEEN 60000000 AND 61000000 then (
+	SELECT ss.solarSystemID
+	FROM staStations AS ss
+	WHERE ss.stationID = a.locationID
+)
+when a.locationID >= 61000000 then (
+	SELECT cc.solarSystemID
+	FROM api_outposts AS cc
+	WHERE cc.stationID = a.locationID
+)
+else (
+	SELECT mm.solarSystemID
+	FROM mapDenormalize AS mm
+	WHERE mm.itemID = a.locationID
+) end AS solarSystemID, a.locationId
+FROM api_assets AS a
+where a.accountId = '$accountId'
+group by a.locationId
+$sorter ;";//limit $pages->start, $pages->count
+
+/*
+
 			$query = "SELECT CASE
 WHEN a.locationid BETWEEN 66014940 AND 66014952 THEN (
 	SELECT s.stationName
@@ -397,11 +486,8 @@ else (
 	where mm.itemID = a.locationid
 )
 end as solarSystemID, 
-a.locationId
-FROM api_assets AS a
-where a.accountId = '$accountId'
-group by a.locationId
-$sorter ;";//limit $pages->start, $pages->count
+*/
+
 			//echo $query;
 
 			$db = OpenDB2();
@@ -713,43 +799,77 @@ $sorter;";
 				}
 			}
 			$query = 
-"select a.*, 
-case
-when a.locationid between 66014940 and 66014952 then (
-	select s.stationName from staStations as s
-	where s.stationID = a.locationid -6000000
+"select a.*, case
+WHEN a.locationid BETWEEN 66014940 AND 66014952 THEN (
+	SELECT s.stationName
+	FROM staStations AS s	WHERE s.stationID = a.locationid - 6000000
 )
-when a.locationid between 66000000 and 66015131 then (
-	select s.stationName from staStations as s
-	where s.stationID = a.locationid -6000001
+when a.locationID BETWEEN 66000000 AND 66999999 then (
+	SELECT s.stationName
+	FROM staStations AS s
+	WHERE s.stationID = a.locationID - 6000001
 )
-when a.locationid between 66015132 and 67999999 then (
-	select c.stationname from api_outposts as c
-	where c.stationid = a.locationid -6000000
+when a.locationID BETWEEN 67000000 AND 67999999 then (
+	SELECT c.stationName
+	FROM api_outposts AS c
+	WHERE c.stationID = a.locationID - 6000000
 )
-else (
-	select m.itemName from mapDenormalize as m
-	where m.itemID = a.locationid
+when a.locationID BETWEEN 60014861 AND 60014928 then (
+	SELECT c.stationName
+	FROM api_outposts AS c
+	WHERE c.stationID = a.locationID
 )
-end as locationName, 
-case
-when a.locationid between 66014940 and 66014952 then (
-	select ss.solarSystemID from staStations as ss
-	where ss.stationID = a.locationid -6000000
+when a.locationID BETWEEN 60000000 AND 61000000 then (
+	SELECT s.stationName
+	FROM staStations AS s
+	WHERE s.stationID = a.locationID
 )
-when a.locationid between 66000000 and 66015131 then (
-	select ss.solarSystemID from staStations as ss
-	where ss.stationID = a.locationid -6000001
-)
-when a.locationid between 66015132 and 67999999 then (
-	select cc.solarSystemID from api_outposts as cc
-	where cc.stationid = a.locationid -6000000
+when a.locationID >= 61000000 then (
+	SELECT c.stationName
+	FROM api_outposts AS c
+	WHERE c.stationID = a.locationID
 )
 else (
-	select mm.solarSystemID from mapDenormalize as mm
-	where mm.itemID = a.locationid
+	SELECT m.itemName
+	FROM mapDenormalize AS m
+	WHERE m.itemID = a.locationID
+) end AS locationName,
+case
+WHEN a.locationid BETWEEN 66014940 AND 66014952 THEN (
+	SELECT ss.solarSystemID
+	FROM staStations AS ss
+	WHERE ss.stationID = a.locationID - 6000000
 )
-end as solarSystemID, 
+when a.locationID BETWEEN 66000000 AND 66999999 then (
+	SELECT ss.solarSystemID
+	FROM staStations AS ss
+	WHERE ss.stationID = a.locationID - 6000001
+)
+when a.locationID BETWEEN 67000000 AND 67999999 then (
+	SELECT cc.solarSystemID
+	FROM api_outposts AS cc
+	WHERE cc.stationID = a.locationID - 6000000
+)
+when a.locationID BETWEEN 60014861 AND 60014928 then (
+	SELECT cc.solarSystemID
+	FROM api_outposts AS cc
+	WHERE cc.stationID = a.locationID
+)
+when a.locationID BETWEEN 60000000 AND 61000000 then (
+	SELECT ss.solarSystemID
+	FROM staStations AS ss
+	WHERE ss.stationID = a.locationID
+)
+when a.locationID >= 61000000 then (
+	SELECT cc.solarSystemID
+	FROM api_outposts AS cc
+	WHERE cc.stationID = a.locationID
+)
+else (
+	SELECT mm.solarSystemID
+	FROM mapDenormalize AS mm
+	WHERE mm.itemID = a.locationID
+) end AS solarSystemID,
 invTypes.typeName, sum(api_assets.quantity) as quantity
 from api_assets_monitor as a
 left join invTypes on invTypes.typeID = a.typeId
@@ -788,7 +908,7 @@ where a.accountId = '$accountId' group by a.typeId, a.locationId $sorter;";
 				$page->Body .= "
 						<tr class='$rowClass'>\n
 							<td>{$this->rowIndex}</td>\n
-							<td>$row[locationName]</td>
+							<td>$row[locationName] ($row[locationId])</td>
 							<td>$row[typeName]</td>
 							<td class='b-right' $highlight>$quantity</td>
 							<td class='b-right' id='min_$row[recordId]'>$quantityMinimum</td>
@@ -829,24 +949,40 @@ where a.accountId = '$accountId' group by a.typeId, a.locationId $sorter;";
 
 				$query = 
 "select a.*, case
-
-when a.locationid between 66014940 and 66014952 then (
-	select s.stationName from staStations as s
-	where s.stationID = a.locationid -6000000
+WHEN a.locationid BETWEEN 66014940 AND 66014952 THEN (
+	SELECT s.stationName
+	FROM staStations AS s	WHERE s.stationID = a.locationid - 6000000
 )
-when a.locationid between 66000000 and 66015131 then (
-	select s.stationName from staStations as s
-	where s.stationID = a.locationid -6000001
+when a.locationID BETWEEN 66000000 AND 66999999 then (
+	SELECT s.stationName
+	FROM staStations AS s
+	WHERE s.stationID = a.locationID - 6000001
 )
-when a.locationid between 66015132 and 67999999 then (
-	select c.stationname from api_outposts as c
-	where c.stationid = a.locationid -6000000
+when a.locationID BETWEEN 67000000 AND 67999999 then (
+	SELECT c.stationName
+	FROM api_outposts AS c
+	WHERE c.stationID = a.locationID - 6000000
+)
+when a.locationID BETWEEN 60014861 AND 60014928 then (
+	SELECT c.stationName
+	FROM api_outposts AS c
+	WHERE c.stationID = a.locationID
+)
+when a.locationID BETWEEN 60000000 AND 61000000 then (
+	SELECT s.stationName
+	FROM staStations AS s
+	WHERE s.stationID = a.locationID
+)
+when a.locationID >= 61000000 then (
+	SELECT c.stationName
+	FROM api_outposts AS c
+	WHERE c.stationID = a.locationID
 )
 else (
-	select m.itemName from mapDenormalize as m
-	where m.itemID = a.locationid
-)
-end as locationName, invTypes.typeName, sum(api_assets.quantity) as quantity
+	SELECT m.itemName
+	FROM mapDenormalize AS m
+	WHERE m.itemID = a.locationID
+) end AS locationName, invTypes.typeName, sum(api_assets.quantity) as quantity
 from api_assets_monitor as a
 left join invTypes on invTypes.typeID = a.typeId
 left join api_assets on (api_assets.typeId = a.typeId and api_assets.locationId = a.locationId)
